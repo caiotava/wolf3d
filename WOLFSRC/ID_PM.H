@@ -52,7 +52,7 @@ typedef	struct
 			longword	lastHit;		// Last frame number of hit
 		} EMSListStruct;
 
-extern	boolean			XMSPresent,EMSPresent;
+extern	bool			XMSPresent,EMSPresent;
 extern	word			XMSPagesAvail,EMSPagesAvail;
 
 extern	word			ChunksInFile,
@@ -72,7 +72,7 @@ extern	char	PageFileName[13];
 extern	void	PM_Startup(void),
 				PM_Shutdown(void),
 				PM_Reset(void),
-				PM_Preload(boolean (*update)(word current,word total)),
+				PM_Preload(bool (*update)(word current,word total)),
 				PM_NextFrame(void),
 				PM_SetPageLock(int pagenum,PMLockType lock),
 				PM_SetMainPurge(int level),

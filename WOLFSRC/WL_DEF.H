@@ -601,7 +601,7 @@ typedef enum {
 
 typedef struct	statestruct
 {
-	boolean	rotate;
+	bool	rotate;
 	int		shapenum;			// a shapenum of -1 means get from ob->temp1
 	int		tictime;
 	void	(*think) (),(*action) ();
@@ -634,7 +634,7 @@ typedef struct statstruct
 typedef struct doorstruct
 {
 	byte	tilex,tiley;
-	boolean	vertical;
+	bool	vertical;
 	byte	lock;
 	enum	{dr_open,dr_closed,dr_opening,dr_closing}	action;
 	int		ticcount;
@@ -730,7 +730,7 @@ typedef	struct
 				secrettotal,treasuretotal,killtotal;
 	long		TimeCount;
 	long		killx,killy;
-	boolean		victoryflag;		// set during victory animations
+	bool		victoryflag;		// set during victory animations
 } gametype;
 
 
@@ -756,13 +756,13 @@ typedef	enum	{
 =============================================================================
 */
 
-extern	boolean		MS_CheckParm (char *string);
+extern	bool		MS_CheckParm (char *string);
 
 extern	char		str[80],str2[20];
 extern	int			tedlevelnum;
-extern	boolean		tedlevel;
-extern	boolean		nospr;
-extern	boolean		IsA386;
+extern	bool		tedlevel;
+extern	bool		nospr;
+extern	bool		IsA386;
 
 extern	byte far	*scalermemory;
 
@@ -776,7 +776,7 @@ extern	int			shootdelta;
 
 extern	int			dirangle[9];
 
-extern	boolean         startgame,loadedgame,virtualreality;
+extern	bool         startgame,loadedgame,virtualreality;
 extern	int		mouseadjustment;
 //
 // math tables
@@ -801,11 +801,11 @@ void		OrderingInfo (void);
 void		TEDDeath(void);
 void		Quit (char *error);
 void 		CalcProjection (long focal);
-boolean		SetViewSize (unsigned width, unsigned height);
+bool		SetViewSize (unsigned width, unsigned height);
 void		NewGame (int difficulty,int episode);
 void 		NewViewSize (int width);
-boolean 	LoadTheGame(int file,int x,int y);
-boolean		SaveTheGame(int file,int x,int y);
+bool 	LoadTheGame(int file,int x,int y);
+bool		SaveTheGame(int file,int x,int y);
 void 		ShowViewSize (int width);
 void		ShutdownId (void);
 
@@ -819,7 +819,7 @@ void		ShutdownId (void);
 */
 
 
-extern	boolean		ingame,fizzlein;
+extern	bool		ingame,fizzlein;
 extern	unsigned	latchpics[NUMLATCHPICS];
 extern	gametype	gamestate;
 extern	int			doornum;
@@ -828,7 +828,7 @@ extern	char		demoname[13];
 
 extern	long		spearx,speary;
 extern	unsigned	spearangle;
-extern	boolean		spearflag;
+extern	bool		spearflag;
 
 
 void 	DrawPlayBorder (void);
@@ -867,7 +867,7 @@ extern	long		funnyticount;		// FOR FUNNY BJ FACE
 
 extern	exit_t		playstate;
 
-extern	boolean		madenoise;
+extern	bool		madenoise;
 
 extern	objtype 	objlist[MAXACTORS],*new,*obj,*player,*lastobj,
 					*objfreelist,*killerobj;
@@ -884,20 +884,20 @@ extern	objtype		*actorat[MAPSIZE][MAPSIZE];
 #define UPDATESIZE			(UPDATEWIDE*UPDATEHIGH)
 extern	byte		update[UPDATESIZE];
 
-extern	boolean		singlestep,godmode,noclip;
+extern	bool		singlestep,godmode,noclip;
 extern	int			extravbls;
 
 //
 // control info
 //
-extern	boolean		mouseenabled,joystickenabled,joypadenabled,joystickprogressive;
+extern	bool		mouseenabled,joystickenabled,joypadenabled,joystickprogressive;
 extern	int			joystickport;
 extern	int			dirscan[4];
 extern	int			buttonscan[NUMBUTTONS];
 extern	int			buttonmouse[4];
 extern	int			buttonjoy[4];
 
-extern	boolean		buttonheld[NUMBUTTONS];
+extern	bool		buttonheld[NUMBUTTONS];
 
 extern	int			viewsize;
 
@@ -905,9 +905,9 @@ extern	int			viewsize;
 // curent user input
 //
 extern	int			controlx,controly;		// range from -100 to 100
-extern	boolean		buttonstate[NUMBUTTONS];
+extern	bool		buttonstate[NUMBUTTONS];
 
-extern	boolean		demorecord,demoplayback;
+extern	bool		demorecord,demoplayback;
 extern	char		*demoptr, *lastdemoptr;
 extern	memptr		demobuffer;
 
@@ -968,7 +968,7 @@ extern	unsigned freelatch;
 
 extern	long 	lasttimecount;
 extern	long 	frameon;
-extern	boolean	fizzlein;
+extern	bool	fizzlein;
 
 extern	unsigned	wallheight[MAXVIEWWIDTH];
 
@@ -1037,18 +1037,18 @@ void	InitHitRect (objtype *ob, unsigned radius);
 void	SpawnNewObj (unsigned tilex, unsigned tiley, statetype *state);
 void	NewState (objtype *ob, statetype *state);
 
-boolean TryWalk (objtype *ob);
+bool TryWalk (objtype *ob);
 void 	SelectChaseDir (objtype *ob);
 void 	SelectDodgeDir (objtype *ob);
 void	SelectRunDir (objtype *ob);
 void	MoveObj (objtype *ob, long move);
-boolean SightPlayer (objtype *ob);
+bool SightPlayer (objtype *ob);
 
 void	KillActor (objtype *ob);
 void	DamageActor (objtype *ob, unsigned damage);
 
-boolean CheckLine (objtype *ob);
-boolean	CheckSight (objtype *ob);
+bool CheckLine (objtype *ob);
+bool	CheckSight (objtype *ob);
 
 
 /*
@@ -1090,7 +1090,7 @@ extern	byte		mapmasks3[4][8];
 
 extern	int			maxscale,maxscaleshl2;
 
-extern	boolean	insetupscaling;
+extern	bool	insetupscaling;
 
 void SetupScaling (int maxscaleheight);
 void ScaleShape (int xcenter, int shapenum, unsigned height);
@@ -1107,7 +1107,7 @@ void SimpleScaleShape (int xcenter, int shapenum, unsigned height);
 //
 // player state info
 //
-extern	boolean		running;
+extern	bool		running;
 extern	long		thrustspeed;
 extern	unsigned	plux,pluy;		// player coordinates scaled to unsigned
 
@@ -1149,7 +1149,7 @@ extern	unsigned	doorposition[MAXDOORS],pwallstate;
 
 extern	byte		areaconnect[NUMAREAS][NUMAREAS];
 
-extern	boolean		areabyplayer[NUMAREAS];
+extern	bool		areabyplayer[NUMAREAS];
 
 extern unsigned	pwallstate;
 extern unsigned	pwallpos;			// amount a pushable wall has been moved (0-63)
@@ -1160,7 +1160,7 @@ extern int			pwalldir;
 void InitDoorList (void);
 void InitStaticList (void);
 void SpawnStatic (int tilex, int tiley, int type);
-void SpawnDoor (int tilex, int tiley, boolean vertical, int lock);
+void SpawnDoor (int tilex, int tiley, bool vertical, int lock);
 void MoveDoors (void);
 void MovePWalls (void);
 void OpenDoor (int door);

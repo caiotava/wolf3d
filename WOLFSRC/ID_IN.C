@@ -50,14 +50,14 @@
 //
 // configuration variables
 //
-boolean			MousePresent;
-boolean			JoysPresent[MaxJoys];
-boolean			JoyPadPresent;
+bool			MousePresent;
+bool			JoysPresent[MaxJoys];
+bool			JoyPadPresent;
 
 
 // 	Global variables
-		boolean		Keyboard[NumCodes];
-		boolean		Paused;
+		bool		Keyboard[NumCodes];
+		bool		Paused;
 		char		LastASCII;
 		ScanCode	LastScan;
 
@@ -116,8 +116,8 @@ static	byte        ASCIINames[] =		// Unshifted ASCII for scan codes
 					};
 
 
-static	boolean		IN_Started;
-static	boolean		CapsLock;
+static	bool		IN_Started;
+static	bool		CapsLock;
 static	ScanCode	CurCode,LastCode;
 
 static	Direction	DirTable[] =		// Quick lookup for total direction
@@ -142,7 +142,7 @@ static	char			*ParmStrings[] = {"nojoys","nomouse",nil};
 static void interrupt
 INL_KeyService(void)
 {
-static	boolean	special;
+static	bool	special;
 		byte	k,c,
 				temp;
 		int		i;
@@ -455,7 +455,7 @@ INL_ShutKbd(void)
 //	INL_StartMouse() - Detects and sets up the mouse
 //
 ///////////////////////////////////////////////////////////////////////////
-static boolean
+static bool
 INL_StartMouse(void)
 {
 #if 0
@@ -543,7 +543,7 @@ IN_SetupJoy(word joy,word minx,word maxx,word miny,word maxy)
 //					The auto-config assumes the joystick is centered
 //
 ///////////////////////////////////////////////////////////////////////////
-static boolean
+static bool
 INL_StartJoy(word joy)
 {
 	word		x,y;
@@ -583,7 +583,7 @@ INL_ShutJoy(word joy)
 void
 IN_Startup(void)
 {
-	boolean	checkjoys,checkmouse;
+	bool	checkjoys,checkmouse;
 	word	i;
 
 	if (IN_Started)
@@ -619,7 +619,7 @@ IN_Startup(void)
 //
 ///////////////////////////////////////////////////////////////////////////
 void
-IN_Default(boolean gotit,ControlType in)
+IN_Default(bool gotit,ControlType in)
 {
 	if
 	(
@@ -690,7 +690,7 @@ IN_ClearKeysDown(void)
 void
 IN_ReadControl(int player,ControlInfo *info)
 {
-			boolean		realdelta;
+			bool		realdelta;
 			byte		dbyte;
 			word		buttons;
 			int			dx,dy;
@@ -866,7 +866,7 @@ IN_WaitForASCII(void)
 //
 ///////////////////////////////////////////////////////////////////////////
 
-boolean	btnstate[8];
+bool	btnstate[8];
 
 void IN_StartAck(void)
 {
@@ -888,7 +888,7 @@ void IN_StartAck(void)
 }
 
 
-boolean IN_CheckAck (void)
+bool IN_CheckAck (void)
 {
 	unsigned	i,buttons;
 
@@ -932,7 +932,7 @@ void IN_Ack (void)
 //		button up.
 //
 ///////////////////////////////////////////////////////////////////////////
-boolean IN_UserInput(longword delay)
+bool IN_UserInput(longword delay)
 {
 	longword	lasttime;
 

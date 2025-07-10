@@ -20,10 +20,10 @@ unsigned	screenseg=SCREENSEG;		// set to 0xa000 for asm convenience
 unsigned	linewidth;
 unsigned	ylookup[MAXSCANLINES];
 
-boolean		screenfaded;
+bool		screenfaded;
 unsigned	bordercolor;
 
-boolean		fastpalette;				// if true, use outsb to set
+bool		fastpalette;				// if true, use outsb to set
 
 byte		far	palette1[256][3],palette2[256][3];
 

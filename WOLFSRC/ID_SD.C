@@ -60,13 +60,13 @@
 
 //	Imports from ID_SD_A.ASM
 extern	void			SDL_SetDS(void),
-						SDL_IndicatePC(boolean on);
+						SDL_IndicatePC(bool on);
 extern	void interrupt	SDL_t0ExtremeAsmService(void),
 						SDL_t0FastAsmService(void),
 						SDL_t0SlowAsmService(void);
 
 //	Global variables
-	boolean		SoundSourcePresent,
+	bool		SoundSourcePresent,
 				AdLibPresent,
 				SoundBlasterPresent,SBProPresent,
 				NeedsDigitized,NeedsMusic,
@@ -77,13 +77,13 @@ extern	void interrupt	SDL_t0ExtremeAsmService(void),
 	longword	TimeCount;
 	word		HackCount;
 	word		*SoundTable;	// Really * _seg *SoundTable, but that don't work
-	boolean		ssIsTandy;
+	bool		ssIsTandy;
 	word		ssPort = 2;
 	int			DigiMap[LASTSOUND];
 
 //	Internal variables
-static	boolean			SD_Started;
-		boolean			nextsoundpos;
+static	bool			SD_Started;
+		bool			nextsoundpos;
 		longword		TimerDivisor,TimerCount;
 static	char			*ParmStrings[] =
 						{
@@ -108,14 +108,14 @@ static	void			(*SoundUserHook)(void);
 		word			NumDigi,DigiLeft,DigiPage;
 		word			_seg *DigiList;
 		word			DigiLastStart,DigiLastEnd;
-		boolean			DigiPlaying;
-static	boolean			DigiMissed,DigiLastSegment;
+		bool			DigiPlaying;
+static	bool			DigiMissed,DigiLastSegment;
 static	memptr			DigiNextAddr;
 static	word			DigiNextLen;
 
 //	SoundBlaster variables
-static	boolean					sbNoCheck,sbNoProCheck;
-static	volatile boolean		sbSamplePlaying;
+static	bool					sbNoCheck,sbNoProCheck;
+static	volatile bool		sbSamplePlaying;
 static	byte					sbOldIntMask = -1;
 static	volatile byte			huge *sbNextSegPtr;
 static	byte					sbDMA = 1,
@@ -131,8 +131,8 @@ static	void interrupt			(*sbOldIntHand)(void);
 static	byte					sbpOldFMMix,sbpOldVOCMix;
 
 //	SoundSource variables
-		boolean				ssNoCheck;
-		boolean				ssActive;
+		bool				ssNoCheck;
+		bool				ssActive;
 		word				ssControl,ssStatus,ssData;
 		byte				ssOn,ssOff;
 		volatile byte		*ssSample;
@@ -144,7 +144,7 @@ static	byte					sbpOldFMMix,sbpOldVOCMix;
 		word			pcSoundLookup[255];
 
 //	AdLib variables
-		boolean			alNoCheck;
+		bool			alNoCheck;
 		byte			*alSound;
 		word			alBlock;
 		longword		alLengthLeft;
@@ -159,7 +159,7 @@ static	byte			carriers[9] =  { 3, 4, 5,11,12,13,19,20,21},
 						pmodifiers[5] = {16,17,18,20,21};
 
 //	Sequencer variables
-		boolean			sqActive;
+		bool			sqActive;
 static	word			alFXReg;
 static	ActiveTrack		*tracks[sqMaxTracks],
 						mytracks[sqMaxTracks];
@@ -444,7 +444,7 @@ asm	popf
 //		particular I/O location
 //
 ///////////////////////////////////////////////////////////////////////////
-static boolean
+static bool
 SDL_CheckSB(int port)
 {
 	int	i;
@@ -495,7 +495,7 @@ asm	loop usecloop
 //		it just passes it directly to SDL_CheckSB()
 //
 ///////////////////////////////////////////////////////////////////////////
-static boolean
+static bool
 SDL_DetectSoundBlaster(int port)
 {
 	int	i;
@@ -652,7 +652,7 @@ asm	popf
 static void
 SDL_SSService(void)
 {
-	boolean	gotit;
+	bool	gotit;
 	byte	v;
 
 	while (ssSample)
@@ -753,10 +753,10 @@ SDL_ShutSS(void)
 //		location specified by the sound source variables
 //
 ///////////////////////////////////////////////////////////////////////////
-static boolean
+static bool
 SDL_CheckSS(void)
 {
-	boolean		present = false;
+	bool		present = false;
 	longword	lasttime;
 
 	// Turn the Sound Source on and wait awhile (4 ticks)
@@ -804,7 +804,7 @@ checkdone:
 	return(present);
 }
 
-static boolean
+static bool
 SDL_DetectSoundSource(void)
 {
 	for (ssPort = 1;ssPort <= 3;ssPort++)
@@ -1192,7 +1192,7 @@ SDL_DigitizedDone(void)
 void
 SD_SetDigiDevice(SDSMode mode)
 {
-	boolean	devicenotpresent;
+	bool	devicenotpresent;
 
 	if (mode == DigiMode)
 		return;
@@ -1337,7 +1337,7 @@ asm	in	al,dx
 //
 ///////////////////////////////////////////////////////////////////////////
 static void
-SDL_SetInstrument(int track,int which,Instrument *inst,boolean percussive)
+SDL_SetInstrument(int track,int which,Instrument *inst,bool percussive)
 {
 	byte		c,m;
 
@@ -1581,7 +1581,7 @@ SDL_StartAL(void)
 //		emulating an AdLib) present
 //
 ///////////////////////////////////////////////////////////////////////////
-static boolean
+static bool
 SDL_DetectAdLib(void)
 {
 	byte	status1,status2;
@@ -1770,10 +1770,10 @@ SDL_StartDevice(void)
 //	SD_SetSoundMode() - Sets which sound hardware to use for sound effects
 //
 ///////////////////////////////////////////////////////////////////////////
-boolean
+bool
 SD_SetSoundMode(SDMode mode)
 {
-	boolean	result = false;
+	bool	result = false;
 	word	tableoffset;
 
 	SD_StopSound();
@@ -1826,10 +1826,10 @@ SD_SetSoundMode(SDMode mode)
 //	SD_SetMusicMode() - sets the device to use for background music
 //
 ///////////////////////////////////////////////////////////////////////////
-boolean
+bool
 SD_SetMusicMode(SMMode mode)
 {
-	boolean	result = false;
+	bool	result = false;
 
 	SD_FadeOutMusic();
 	while (SD_MusicPlaying())
@@ -2009,9 +2009,9 @@ SD_Startup(void)
 //
 ///////////////////////////////////////////////////////////////////////////
 void
-SD_Default(boolean gotit,SDMode sd,SMMode sm)
+SD_Default(bool gotit,SDMode sd,SMMode sm)
 {
-	boolean	gotsd,gotsm;
+	bool	gotsd,gotsm;
 
 	gotsd = gotsm = gotit;
 
@@ -2119,10 +2119,10 @@ SD_PositionSound(int leftvol,int rightvol)
 //	SD_PlaySound() - plays the specified sound on the appropriate hardware
 //
 ///////////////////////////////////////////////////////////////////////////
-boolean
+bool
 SD_PlaySound(soundnames sound)
 {
-	boolean		ispos;
+	bool		ispos;
 	SoundCommon	*s;
 	int	lp,rp;
 
@@ -2210,7 +2210,7 @@ SD_PlaySound(soundnames sound)
 word
 SD_SoundPlaying(void)
 {
-	boolean	result = false;
+	bool	result = false;
 
 	switch (SoundMode)
 	{
@@ -2348,10 +2348,10 @@ SD_FadeOutMusic(void)
 //		not
 //
 ///////////////////////////////////////////////////////////////////////////
-boolean
+bool
 SD_MusicPlaying(void)
 {
-	boolean	result;
+	bool	result;
 
 	switch (MusicMode)
 	{

@@ -18,7 +18,7 @@ long			fullscalefarcall[MAXSCALEHEIGHT+1];
 
 int			maxscale,maxscaleshl2;
 
-boolean	insetupscaling;
+bool	insetupscaling;
 
 /*
 =============================================================================
@@ -425,7 +425,7 @@ void ScaleShape (int xcenter, int shapenum, unsigned height)
 	unsigned	scale,srcx,stopx,tempx;
 	int			t;
 	unsigned	*cmdptr;
-	boolean		leftvis,rightvis;
+	bool		leftvis,rightvis;
 
 
 	shape = PM_GetSpritePage (shapenum);
@@ -629,7 +629,7 @@ void SimpleScaleShape (int xcenter, int shapenum, unsigned height)
 	unsigned	scale,srcx,stopx,tempx;
 	int			t;
 	unsigned	*cmdptr;
-	boolean		leftvis,rightvis;
+	bool		leftvis,rightvis;
 
 
 	shape = PM_GetSpritePage (shapenum);

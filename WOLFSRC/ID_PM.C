@@ -8,19 +8,19 @@
 #pragma hdrstop
 
 //	Main Mem specific variables
-	boolean			MainPresent;
+	bool			MainPresent;
 	memptr			MainMemPages[PMMaxMainMem];
 	PMBlockAttr		MainMemUsed[PMMaxMainMem];
 	int				MainPagesAvail;
 
 //	EMS specific variables
-	boolean			EMSPresent;
+	bool			EMSPresent;
 	word			EMSAvail,EMSPagesAvail,EMSHandle,
 					EMSPageFrame,EMSPhysicalPage;
 	EMSListStruct	EMSList[EMSFrameCount];
 
 //	XMS specific variables
-	boolean			XMSPresent;
+	bool			XMSPresent;
 	word			XMSAvail,XMSPagesAvail,XMSHandle;
 	longword		XMSDriver;
 	int				XMSProtectPage = -1;
@@ -32,7 +32,7 @@
 	word			PMSpriteStart,PMSoundStart;
 
 //	General usage variables
-	boolean			PMStarted,
+	bool			PMStarted,
 					PMPanicMode,
 					PMThrashing;
 	word			XMSPagesUsed,
@@ -78,7 +78,7 @@ asm	int	EMS_INT
 
 	char	EMMDriverName[9] = "EMMXXXX0";
 
-boolean
+bool
 PML_StartupEMS(void)
 {
 	int		i;
@@ -193,7 +193,7 @@ PML_ShutdownEMS(void)
 //		Makes sure that there's at least a page of XMS available
 //		Allocates any remaining XMS (rounded down to the nearest page size)
 //
-boolean
+bool
 PML_StartupXMS(void)
 {
 	XMSPresent = false;					// Assume failure
@@ -241,7 +241,7 @@ error:
 //		Will round an odd-length request up to the next even value
 //
 void
-PML_XMSCopy(boolean toxms,byte *addr,word xmspage,word length)
+PML_XMSCopy(bool toxms,byte *addr,word xmspage,word length)
 {
 	longword	xoffset;
 	struct
@@ -349,7 +349,7 @@ PM_SetMainMemPurge(int level)
 void
 PM_CheckMainMem(void)
 {
-	boolean			allocfailed;
+	bool			allocfailed;
 	int				i,n;
 	memptr			*p;
 	PMBlockAttr		*used;
@@ -643,7 +643,7 @@ PM_GetPageAddress(int pagenum)
 //		present & unlocked main/EMS page (or main page if mainonly is true)
 //
 int
-PML_GiveLRUPage(boolean mainonly)
+PML_GiveLRUPage(bool mainonly)
 {
 	int				i,lru;
 	long			last;
@@ -777,7 +777,7 @@ PML_TransferPageSpace(int orig,int new)
 //		will be looked at by PML_GiveLRUPage().
 //
 byte *
-PML_GetAPageBuffer(int pagenum,boolean mainonly)
+PML_GetAPageBuffer(int pagenum,bool mainonly)
 {
 	byte			*addr = nil;
 	int				i,n;
@@ -829,7 +829,7 @@ PML_GetAPageBuffer(int pagenum,boolean mainonly)
 //		(pages that are being purged are copied into XMS, if possible)
 //
 memptr
-PML_GetPageFromXMS(int pagenum,boolean mainonly)
+PML_GetPageFromXMS(int pagenum,bool mainonly)
 {
 	byte			*checkaddr;
 	memptr			addr = nil;
@@ -856,7 +856,7 @@ PML_GetPageFromXMS(int pagenum,boolean mainonly)
 //		only be loaded into main.
 //
 void
-PML_LoadPage(int pagenum,boolean mainonly)
+PML_LoadPage(int pagenum,bool mainonly)
 {
 	byte			*addr;
 	PageListStruct	*page;
@@ -893,7 +893,7 @@ asm	out	dx,al
 
 	if (!(result = PM_GetPageAddress(pagenum)))
 	{
-		boolean mainonly = (pagenum >= PMSoundStart);
+		bool mainonly = (pagenum >= PMSoundStart);
 if (!PMPages[pagenum].offset)	// JDC: sparse page
 	Quit ("Tried to load a sparse page!");
 		if (!(result = PML_GetPageFromXMS(pagenum,mainonly)))
@@ -945,7 +945,7 @@ PM_SetPageLock(int pagenum,PMLockType lock)
 //		page, and the total pages that need to be loaded (for thermometer).
 //
 void
-PM_Preload(boolean (*update)(word current,word total))
+PM_Preload(bool (*update)(word current,word total))
 {
 	int				i,j,
 					page,oogypage;
@@ -1141,7 +1141,7 @@ PM_Reset(void)
 void
 PM_Startup(void)
 {
-	boolean	nomain,noems,noxms;
+	bool	nomain,noems,noxms;
 	int		i;
 
 	if (PMStarted)

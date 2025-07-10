@@ -35,7 +35,7 @@
 
 //	Global variables
 		char		*abortprogram;
-		boolean		NoWait;
+		bool		NoWait;
 		word		PrintX,PrintY;
 		word		WindowX,WindowY,WindowW,WindowH;
 
@@ -44,9 +44,9 @@
 
 static	char		*ParmStrings[] = {"TEDLEVEL","NOWAIT"},
 					*ParmStrings2[] = {"COMP","NOCOMP"};
-static	boolean		US_Started;
+static	bool		US_Started;
 
-		boolean		Button0,Button1,
+		bool		Button0,Button1,
 					CursorBad;
 		int			CursorX,CursorY;
 
@@ -537,7 +537,7 @@ US_RestoreWindow(WindowRec *win)
 static void
 USL_XORICursor(int x,int y,char *s,word cursor)
 {
-	static	boolean	status;		// VGA doesn't XOR...
+	static	bool	status;		// VGA doesn't XOR...
 	char	buf[MaxString];
 	int		temp;
 	word	w,h;
@@ -570,11 +570,11 @@ USL_XORICursor(int x,int y,char *s,word cursor)
 //		returned
 //
 ///////////////////////////////////////////////////////////////////////////
-boolean
-US_LineInput(int x,int y,char *buf,char *def,boolean escok,
+bool
+US_LineInput(int x,int y,char *buf,char *def,bool escok,
 				int maxchars,int maxwidth)
 {
-	boolean		redraw,
+	bool		redraw,
 				cursorvis,cursormoved,
 				done,result;
 	ScanCode	sc;

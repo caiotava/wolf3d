@@ -210,7 +210,7 @@ void CAL_GetGrChunkLength (int chunk)
 ==========================
 */
 
-boolean CA_FarRead (int handle, byte *dest, long length)
+bool CA_FarRead (int handle, byte *dest, long length)
 {
 	if (length>0xffffl)
 		Quit ("CA_FarRead doesn't support 64K reads yet!");
@@ -246,7 +246,7 @@ done:
 ==========================
 */
 
-boolean CA_FarWrite (int handle, byte *source, long length)
+bool CA_FarWrite (int handle, byte *source, long length)
 {
 	if (length>0xffffl)
 		Quit ("CA_FarWrite doesn't support 64K reads yet!");
@@ -283,7 +283,7 @@ done:
 ==========================
 */
 
-boolean CA_ReadFile (char *filename, memptr *ptr)
+bool CA_ReadFile (char *filename, memptr *ptr)
 {
 	int handle;
 	long size;
@@ -312,7 +312,7 @@ boolean CA_ReadFile (char *filename, memptr *ptr)
 ==========================
 */
 
-boolean CA_WriteFile (char *filename, void *ptr, long length)
+bool CA_WriteFile (char *filename, void *ptr, long length)
 {
 	int handle;
 	long size;
@@ -344,7 +344,7 @@ boolean CA_WriteFile (char *filename, void *ptr, long length)
 ==========================
 */
 
-boolean CA_LoadFile (char *filename, memptr *ptr)
+bool CA_LoadFile (char *filename, memptr *ptr)
 {
 	int handle;
 	long size;
@@ -416,7 +416,7 @@ void CAL_OptimizeNodes (huffnode *table)
 */
 
 void CAL_HuffExpand (byte huge *source, byte huge *dest,
-  long length,huffnode *hufftable, boolean screenhack)
+  long length,huffnode *hufftable, bool screenhack)
 {
 //  unsigned bit,byte,node,code;
   unsigned sourceseg,sourceoff,destseg,destoff,endoff;

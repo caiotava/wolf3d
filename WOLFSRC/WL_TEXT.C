@@ -55,7 +55,7 @@ char		*text;
 unsigned	rowon;
 
 int			picx,picy,picnum,picdelay;
-boolean		layoutdone;
+bool		layoutdone;
 
 //===========================================================================
 
@@ -409,7 +409,7 @@ void HandleWord (void)
 =====================
 */
 
-void PageLayout (boolean shownumber)
+void PageLayout (bool shownumber)
 {
 	int		i,oldfontcolor;
 	char	ch;
@@ -632,7 +632,7 @@ void ShowArticle (char *article)
 	#endif
 	unsigned	oldfontnumber;
 	unsigned	temp;
-	boolean 	newpage,firstpage;
+	bool 	newpage,firstpage;
 
 	#ifdef JAPAN
 	pagenum = 1;

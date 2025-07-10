@@ -71,7 +71,7 @@ typedef struct mmblockstruct
 
 mminfotype	mminfo;
 memptr		bufferseg;
-boolean		mmerror;
+bool		mmerror;
 
 void		(* beforesort) (void);
 void		(* aftersort) (void);
@@ -84,7 +84,7 @@ void		(* aftersort) (void);
 =============================================================================
 */
 
-boolean		mmstarted;
+bool		mmstarted;
 
 void far	*farheap;
 void		*nearheap;
@@ -92,7 +92,7 @@ void		*nearheap;
 mmblocktype	mmblocks[MAXBLOCKS]
 			,*mmhead,*mmfree,*mmrover,*mmnew;
 
-boolean		bombonerror;
+bool		bombonerror;
 
 //unsigned	totalEMSpages,freeEMSpages,EMSpageframe,EMSpagesmapped,EMShandle;
 
@@ -106,10 +106,10 @@ unsigned	numUMBs,UMBbase[MAXUMBS];
 // local prototypes
 //
 
-boolean		MML_CheckForEMS (void);
+bool		MML_CheckForEMS (void);
 void 		MML_ShutdownEMS (void);
 void 		MM_MapEMS (void);
-boolean 	MML_CheckForXMS (void);
+bool 	MML_CheckForXMS (void);
 void 		MML_ShutdownXMS (void);
 void		MML_UseSpace (unsigned segstart, unsigned seglength);
 void 		MML_ClearBlock (void);
@@ -126,7 +126,7 @@ void 		MML_ClearBlock (void);
 =======================
 */
 
-boolean MML_CheckForXMS (void)
+bool MML_CheckForXMS (void)
 {
 	numUMBs = 0;
 
@@ -520,9 +520,9 @@ tryagain:
 	{
 
 extern char configname[];
-extern	boolean	insetupscaling;
+extern	bool	insetupscaling;
 extern	int	viewsize;
-boolean SetViewSize (unsigned width, unsigned height);
+bool SetViewSize (unsigned width, unsigned height);
 #define HEIGHTRATIO		0.50
 //
 // wolf hack -- size the view down
@@ -627,7 +627,7 @@ void MM_SetPurge (memptr *baseptr, int purge)
 =====================
 */
 
-void MM_SetLock (memptr *baseptr, boolean locked)
+void MM_SetLock (memptr *baseptr, bool locked)
 {
 	mmblocktype *start;
 
@@ -945,7 +945,7 @@ long MM_TotalFree (void)
 =====================
 */
 
-void MM_BombOnError (boolean bomb)
+void MM_BombOnError (bool bomb)
 {
 	bombonerror = bomb;
 }

@@ -22,7 +22,7 @@
 =============================================================================
 */
 
-boolean		madenoise;					// true when shooting or screaming
+bool		madenoise;					// true when shooting or screaming
 
 exit_t		playstate;
 
@@ -34,7 +34,7 @@ objtype 	objlist[MAXACTORS],*new,*obj,*player,*lastobj,
 unsigned	farmapylookup[MAPSIZE];
 byte		*nearmapylookup[MAPSIZE];
 
-boolean		singlestep,godmode,noclip;
+bool		singlestep,godmode,noclip;
 int			extravbls;
 
 byte		tilemap[MAPSIZE][MAPSIZE];	// wall values only
@@ -45,7 +45,7 @@ objtype		*actorat[MAPSIZE][MAPSIZE];
 // replacing refresh manager
 //
 unsigned	mapwidth,mapheight,tics;
-boolean		compatability;
+bool		compatability;
 byte		*updateptr;
 unsigned	mapwidthtable[64];
 unsigned	uwidthtable[UPDATEHIGH];
@@ -55,7 +55,7 @@ byte		update[UPDATESIZE];
 //
 // control info
 //
-boolean		mouseenabled,joystickenabled,joypadenabled,joystickprogressive;
+bool		mouseenabled,joystickenabled,joypadenabled,joystickprogressive;
 int			joystickport;
 int			dirscan[4] = {sc_UpArrow,sc_RightArrow,sc_DownArrow,sc_LeftArrow};
 int			buttonscan[NUMBUTTONS] =
@@ -65,9 +65,9 @@ int			buttonjoy[4]={bt_attack,bt_strafe,bt_use,bt_run};
 
 int			viewsize;
 
-boolean		buttonheld[NUMBUTTONS];
+bool		buttonheld[NUMBUTTONS];
 
-boolean		demorecord,demoplayback;
+bool		demorecord,demoplayback;
 char		*demoptr, *lastdemoptr;
 memptr		demobuffer;
 
@@ -75,7 +75,7 @@ memptr		demobuffer;
 // curent user input
 //
 int			controlx,controly;		// range from -100 to 100 per tic
-boolean		buttonstate[NUMBUTTONS];
+bool		buttonstate[NUMBUTTONS];
 
 
 
@@ -1063,7 +1063,7 @@ byte	redshifts[NUMREDSHIFTS][768];
 byte	whiteshifts[NUMREDSHIFTS][768];
 
 int		damagecount,bonuscount;
-boolean	palshifted;
+bool	palshifted;
 
 extern 	byte	far	gamepal;
 

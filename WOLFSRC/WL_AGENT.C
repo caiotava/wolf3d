@@ -32,7 +32,7 @@
 //
 // player state info
 //
-boolean		running;
+bool		running;
 long		thrustspeed;
 
 unsigned	plux,pluy;			// player coordinates scaled to unsigned
@@ -91,7 +91,7 @@ void SelectItem (void);
 
 //----------
 
-boolean TryMove (objtype *ob);
+bool TryMove (objtype *ob);
 void T_Player (objtype *ob);
 
 void ClipMove (objtype *ob, long xmove, long ymove);
@@ -798,7 +798,7 @@ void GetBonus (statobj_t *check)
 ===================
 */
 
-boolean TryMove (objtype *ob)
+bool TryMove (objtype *ob)
 {
 	int			xl,yl,xh,yh,x,y;
 	objtype		*check;
@@ -1009,7 +1009,7 @@ void Cmd_Use (void)
 {
 	objtype 	*check;
 	int			checkx,checky,doornum,dir;
-	boolean		elevatorok;
+	bool		elevatorok;
 
 
 //

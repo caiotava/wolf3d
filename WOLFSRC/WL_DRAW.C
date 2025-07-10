@@ -284,7 +284,7 @@ void TransformActor (objtype *ob)
 ========================
 */
 
-boolean TransformTile (int tx, int ty, int *dispx, int *dispheight)
+bool TransformTile (int tx, int ty, int *dispx, int *dispheight)
 {
 	int ratio;
 	fixed gx,gy,gxt,gyt,nx,ny;

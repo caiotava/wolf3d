@@ -220,7 +220,7 @@ extern	word	NumDigi;
 extern	word	_seg *DigiList;
 static	char	buf[10];
 
-	boolean			done;
+	bool			done;
 	ScanCode		scan;
 	int				i,j,k,x;
 	longword		l;
@@ -414,7 +414,7 @@ static	char	buf[10];
 
 int DebugKeys (void)
 {
-	boolean esc;
+	bool esc;
 	int level,i;
 
 	if (Keyboard[sc_B])		// B = border color
@@ -668,7 +668,7 @@ void OverheadRefresh (void)
 
 void ViewMap (void)
 {
-	boolean		button0held;
+	bool		button0held;
 
 	viewtype = actoratview;
 //	button0held = false;

@@ -25,13 +25,13 @@
 =============================================================================
 */
 
-boolean		ingame,fizzlein;
+bool		ingame,fizzlein;
 unsigned	latchpics[NUMLATCHPICS];
 gametype	gamestate;
 
 long		spearx,speary;
 unsigned	spearangle;
-boolean		spearflag;
+bool		spearflag;
 
 //
 // ELEVATOR BACK MAPS - REMEMBER (-1)!!
@@ -1239,7 +1239,7 @@ void GameLoop (void)
 {
 	int i,xl,yl,xh,yh;
 	char num[20];
-	boolean	died;
+	bool	died;
 #ifdef MYPROFILE
 	clock_t start,end;
 #endif

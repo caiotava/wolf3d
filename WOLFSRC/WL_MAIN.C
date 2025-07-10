@@ -41,9 +41,9 @@
 
 char            str[80],str2[20];
 int				tedlevelnum;
-boolean         tedlevel;
-boolean         nospr;
-boolean         IsA386;
+bool         tedlevel;
+bool         nospr;
+bool         IsA386;
 int                     dirangle[9] = {0,ANGLES/8,2*ANGLES/8,3*ANGLES/8,4*ANGLES/8,
 	5*ANGLES/8,6*ANGLES/8,7*ANGLES/8,ANGLES};
 
@@ -63,7 +63,7 @@ int                     minheightdiv;
 
 void            Quit (char *error);
 
-boolean         startgame,loadedgame
+bool         startgame,loadedgame
 int             mouseadjustment;
 
 char	configname[13]="CONFIG.";
@@ -319,7 +319,7 @@ long DoChecksum(byte *source,unsigned size,long checksum)
 ==================
 */
 
-boolean SaveTheGame(int file,int x,int y)
+bool SaveTheGame(int file,int x,int y)
 {
 	struct diskfree_t dfree;
 	long avail,size,checksum;
@@ -439,7 +439,7 @@ boolean SaveTheGame(int file,int x,int y)
 ==================
 */
 
-boolean LoadTheGame(int file,int x,int y)
+bool LoadTheGame(int file,int x,int y)
 {
 	long checksum,oldchecksum;
 	objtype *ob,nullobj;
@@ -815,7 +815,7 @@ void FinishSignon (void)
 =================
 */
 
-boolean MS_CheckParm (char *check)
+bool MS_CheckParm (char *check)
 {
 	int             i;
 	char    *parm;
@@ -1274,7 +1274,7 @@ close(profilehandle);
 ==========================
 */
 
-boolean SetViewSize (unsigned width, unsigned height)
+bool SetViewSize (unsigned width, unsigned height)
 {
 	viewwidth = width&~15;                  // must be divisable by 16
 	viewheight = height&~1;                 // must be even

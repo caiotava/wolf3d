@@ -468,8 +468,8 @@ void LoadLatchMem (void)
 
 extern	ControlInfo	c;
 
-boolean FizzleFade (unsigned source, unsigned dest,
-	unsigned width,unsigned height, unsigned frames, boolean abortable)
+bool FizzleFade (unsigned source, unsigned dest,
+	unsigned width,unsigned height, unsigned frames, bool abortable)
 {
 	int			pixperframe;
 	unsigned	drawofs,pagedelta;

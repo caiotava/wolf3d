@@ -124,8 +124,8 @@ void	VW_MeasurePropString (char *string, word *width, word *height);
 
 void LatchDrawPic (unsigned x, unsigned y, unsigned picnum);
 void 	LoadLatchMem (void);
-boolean 	FizzleFade (unsigned source, unsigned dest,
-	unsigned width,unsigned height, unsigned frames,boolean abortable);
+bool 	FizzleFade (unsigned source, unsigned dest,
+	unsigned width,unsigned height, unsigned frames,bool abortable);
 
 
 #define NUMLATCHPICS	100

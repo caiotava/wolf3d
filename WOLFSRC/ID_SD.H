@@ -174,7 +174,7 @@ typedef	struct
 
 			/* The rest is set up by the code */
 			Instrument	inst;
-			boolean		percussive;
+			bool		percussive;
 			word		*seq;
 			longword	nextevent;
 		} ActiveTrack;
@@ -187,7 +187,7 @@ typedef	struct
 
 
 // Global variables
-extern	boolean		AdLibPresent,
+extern	bool		AdLibPresent,
 					SoundSourcePresent,
 					SoundBlasterPresent,
 					NeedsMusic,					// For Caching Mgr
@@ -195,17 +195,17 @@ extern	boolean		AdLibPresent,
 extern	SDMode		SoundMode;
 extern	SDSMode		DigiMode;
 extern	SMMode		MusicMode;
-extern	boolean		DigiPlaying;
+extern	bool		DigiPlaying;
 extern	int			DigiMap[];
 extern	longword	TimeCount;					// Global time in ticks
 
 // Function prototypes
 extern	void	SD_Startup(void),
 				SD_Shutdown(void),
-				SD_Default(boolean gotit,SDMode sd,SMMode sm),
+				SD_Default(bool gotit,SDMode sd,SMMode sm),
 
 				SD_PositionSound(int leftvol,int rightvol);
-extern	boolean	SD_PlaySound(soundnames sound);
+extern	bool	SD_PlaySound(soundnames sound);
 extern	void	SD_SetPosition(int leftvol,int rightvol),
 				SD_StopSound(void),
 				SD_WaitSoundDone(void),
@@ -216,7 +216,7 @@ extern	void	SD_SetPosition(int leftvol,int rightvol),
 				SD_FadeOutMusic(void),
 
 				SD_SetUserHook(void (*hook)(void));
-extern	boolean	SD_MusicPlaying(void),
+extern	bool	SD_MusicPlaying(void),
 				SD_SetSoundMode(SDMode mode),
 				SD_SetMusicMode(SMMode mode);
 extern	word	SD_SoundPlaying(void);

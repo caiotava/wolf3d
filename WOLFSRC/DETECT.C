@@ -4,7 +4,7 @@
 //		particular I/O location
 //
 ///////////////////////////////////////////////////////////////////////////
-static boolean
+static bool
 SDL_CheckSB(int port)
 {
 	int	i;
@@ -55,7 +55,7 @@ asm	loop usecloop
 //		it just passes it directly to SDL_CheckSB()
 //
 ///////////////////////////////////////////////////////////////////////////
-static boolean
+static bool
 SDL_DetectSoundBlaster(int port)
 {
 	int	i;

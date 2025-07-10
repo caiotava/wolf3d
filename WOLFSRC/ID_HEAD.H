@@ -13,7 +13,7 @@
 
 #include "VERSION.H"
 
-typedef	enum	{false,true}	boolean;
+typedef	enum	{false,true}	bool;
 typedef	unsigned	char		byte;
 typedef	unsigned	int			word;
 typedef	unsigned	long		longword;
