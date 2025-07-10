@@ -150,6 +150,7 @@
 #define FL_AMBUSH		64
 #define FL_NONMARK		128
 
+#define MAXSCALERMEMORY 0x10000
 
 //
 // sprite constants
@@ -1097,7 +1098,7 @@ extern	int			maxscale,maxscaleshl2;
 
 extern	bool	insetupscaling;
 
-void SetupScaling (int maxscaleheight);
+long SetupScaling (int maxscaleheight);
 void ScaleShape (int xcenter, int shapenum, unsigned height);
 void SimpleScaleShape (int xcenter, int shapenum, unsigned height);
 

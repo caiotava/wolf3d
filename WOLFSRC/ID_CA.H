@@ -33,7 +33,8 @@ extern	byte		ca_levelbit,ca_levelnum;
 
 extern	char		*titleptr[8];
 
-extern	int			profilehandle,debughandle;
+extern	int			profilehandle;
+extern	PHYSFS_File *debughandle;
 
 extern	char		extension[5],
 			gheadname[10],
@@ -64,8 +65,8 @@ void CAL_ShiftSprite (unsigned segment,unsigned source,unsigned dest,
 
 void CA_OpenDebug (void);
 void CA_CloseDebug (void);
-bool CA_FarRead (int handle, byte *dest, long length);
-bool CA_FarWrite (int handle, byte *source, long length);
+bool CA_FarRead (PHYSFS_File *handle, byte *dest, long length);
+bool CA_FarWrite (PHYSFS_File *handle, byte *source, long length);
 bool CA_ReadFile (char *filename, memptr *ptr);
 bool CA_LoadFile (char *filename, memptr *ptr);
 bool CA_WriteFile (char *filename, void *ptr, long length);
