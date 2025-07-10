@@ -86,7 +86,7 @@ void		(* aftersort) (void);
 
 bool		mmstarted;
 
-void far	*farheap;
+void		*farheap;
 void		*nearheap;
 
 mmblocktype	mmblocks[MAXBLOCKS]

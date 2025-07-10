@@ -106,7 +106,7 @@ static	void			(*SoundUserHook)(void);
 		word			TimerRate;
 
 		word			NumDigi,DigiLeft,DigiPage;
-		word			_seg *DigiList;
+		word			*DigiList;
 		word			DigiLastStart,DigiLastEnd;
 		bool			DigiPlaying;
 static	bool			DigiMissed,DigiLastSegment;
@@ -117,7 +117,7 @@ static	word			DigiNextLen;
 static	bool					sbNoCheck,sbNoProCheck;
 static	volatile bool		sbSamplePlaying;
 static	byte					sbOldIntMask = -1;
-static	volatile byte			huge *sbNextSegPtr;
+static	volatile byte			*sbNextSegPtr;
 static	byte					sbDMA = 1,
 								sbDMAa1 = 0x83,sbDMAa2 = 2,sbDMAa3 = 3,
 								sba1Vals[] = {0x87,0x83,0,0x82},
@@ -126,7 +126,7 @@ static	byte					sbDMA = 1,
 static	int						sbLocation = -1,sbInterrupt = 7,sbIntVec = 0xf,
 								sbIntVectors[] = {-1,-1,0xa,0xb,-1,0xd,-1,0xf,-1,-1,-1};
 static	volatile longword		sbNextSegLen;
-static	volatile SampledSound	huge *sbSamples;
+static	volatile SampledSound	*sbSamples;
 static	void interrupt			(*sbOldIntHand)(void);
 static	byte					sbpOldFMMix,sbpOldVOCMix;
 
@@ -293,7 +293,7 @@ asm	popf
 //
 ///////////////////////////////////////////////////////////////////////////
 static longword
-SDL_SBPlaySeg(volatile byte huge *data,longword length)
+SDL_SBPlaySeg(volatile byte *data,longword length)
 {
 	unsigned		datapage;
 	longword		dataofs,uselen;
@@ -380,7 +380,7 @@ void
 #else
 static void
 #endif
-SDL_SBPlaySample(byte huge *data,longword len)
+SDL_SBPlaySample(byte *data,longword len)
 {
 	longword	used;
 
@@ -699,7 +699,7 @@ void
 #else
 static void
 #endif
-SDL_SSPlaySample(byte huge *data,longword len)
+SDL_SSPlaySample(byte *data,longword len)
 {
 asm	pushf
 asm	cli
@@ -827,7 +827,7 @@ void
 #else
 static void
 #endif
-SDL_PCPlaySample(byte huge *data,longword len)
+SDL_PCPlaySample(byte *data,longword len)
 {
 asm	pushf
 asm	cli
@@ -1433,7 +1433,7 @@ static void
 SDL_ALPlaySound(AdLibSound *sound)
 {
 	Instrument	*inst;
-	byte		huge *data;
+	byte		*data;
 
 	SDL_ALStopSound();
 

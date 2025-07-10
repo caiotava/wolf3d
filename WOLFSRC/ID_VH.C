@@ -22,7 +22,7 @@ byte	update[UPDATEHIGH][UPDATEWIDE];
 
 //==========================================================================
 
-pictabletype	_seg *pictable;
+pictabletype	*pictable;
 
 
 int	px,py;
@@ -39,10 +39,10 @@ void	VWL_UpdateScreenBlocks (void);
 
 void VW_DrawPropString (char *string)
 {
-	fontstruct	far	*font;
-	int		width,step,height,i;
-	byte	*source, *dest, *origdest;
-	byte	ch,mask;
+	fontstruct *font;
+	int			width,step,height,i;
+	byte		*source, *dest, *origdest;
+	byte		ch,mask;
 
 	font = (fontstruct *)grsegs[STARTFONT+fontnumber];
 	height = bufferheight = font->height;
@@ -95,7 +95,7 @@ bufferwidth = ((dest+1)-origdest)*4;
 
 void VW_DrawColorPropString (char *string)
 {
-	fontstruct	far	*font;
+	fontstruct *font;
 	int		width,step,height,i;
 	byte	*source, *dest, *origdest;
 	byte	ch,mask;
@@ -170,7 +170,7 @@ bufferwidth = ((dest+1)-origdest)*4;
 void VL_MungePic (byte *source, unsigned width, unsigned height)
 {
 	unsigned	x,y,plane,size,pwidth;
-	byte		_seg *temp, *dest, *srcline;
+	byte		*temp, *dest, *srcline;
 
 	size = width*height;
 
@@ -204,7 +204,7 @@ void VL_MungePic (byte *source, unsigned width, unsigned height)
 }
 
 void VWL_MeasureString (char *string, word *width, word *height
-	, fontstruct _seg *font)
+	, fontstruct *font)
 {
 	*height = font->height;
 	for (*width = 0;*string;string++)
@@ -213,12 +213,12 @@ void VWL_MeasureString (char *string, word *width, word *height
 
 void	VW_MeasurePropString (char *string, word *width, word *height)
 {
-	VWL_MeasureString(string,width,height,(fontstruct _seg *)grsegs[STARTFONT+fontnumber]);
+	VWL_MeasureString(string,width,height,(fontstruct*)grsegs[STARTFONT+fontnumber]);
 }
 
 void	VW_MeasureMPropString  (char *string, word *width, word *height)
 {
-	VWL_MeasureString(string,width,height,(fontstruct _seg *)grsegs[STARTFONTM+fontnumber]);
+	VWL_MeasureString(string,width,height,(fontstruct*)grsegs[STARTFONTM+fontnumber]);
 }
 
 
@@ -405,7 +405,7 @@ void LoadLatchMem (void)
 //
 	latchpics[0] = freelatch;
 	CA_CacheGrChunk (STARTTILE8);
-	src = (byte _seg *)grsegs[STARTTILE8];
+	src = (byte*)grsegs[STARTTILE8];
 	destoff = freelatch;
 
 	for (i=0;i<NUMTILE8;i++)
@@ -420,13 +420,13 @@ void LoadLatchMem (void)
 //
 // tile 16s
 //
-	src = (byte _seg *)grsegs[STARTTILE16];
+	src = (byte*)grsegs[STARTTILE16];
 	latchpics[1] = destoff;
 
 	for (i=0;i<NUMTILE16;i++)
 	{
 		CA_CacheGrChunk (STARTTILE16+i);
-		src = (byte _seg *)grsegs[STARTTILE16+i];
+		src = (byte*)grsegs[STARTTILE16+i];
 		VL_MemToLatch (src,16,16,destoff);
 		destoff+=64;
 		if (src)

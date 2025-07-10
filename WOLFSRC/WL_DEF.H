@@ -763,7 +763,7 @@ extern	bool		tedlevel;
 extern	bool		nospr;
 extern	bool		IsA386;
 
-extern	byte far	*scalermemory;
+extern	byte		*scalermemory;
 
 extern	fixed		focallength;
 extern	unsigned	viewangles;
@@ -1082,8 +1082,8 @@ typedef struct
 }	t_compshape;
 
 
-extern	t_compscale _seg *scaledirectory[MAXSCALEHEIGHT+1];
-extern	long			fullscalefarcall[MAXSCALEHEIGHT+1];
+extern	t_compscale *scaledirectory[MAXSCALEHEIGHT+1];
+extern	long		fullscalefarcall[MAXSCALEHEIGHT+1];
 
 extern	byte		bitmasks1[8][8];
 extern	byte		bitmasks2[8][8];

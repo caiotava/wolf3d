@@ -1394,7 +1394,7 @@ char 	CopyProFailedStrs[][100] = {
 			"Change View...F5",
 			"Quit...F10"},
 
-		far	WordCorrect[5][2] = {"3","4","4","5","5"},
+		WordCorrect[5][2] = {"3","4","4","5","5"},
 
 		MemberStr[10][40] = {
 			STR_COPY15,

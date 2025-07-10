@@ -207,7 +207,7 @@ int songs[]=
  XFUNKIE_MUS,
  XDEATH_MUS,
  XGETYOU_MUS,		// DON'T KNOW
- ULTIMATE_MUS,	// Trans Gr”sse
+ ULTIMATE_MUS,	// Trans Grï¿½sse
 
  DUNGEON_MUS,
  GOINGAFT_MUS,
@@ -1065,7 +1065,7 @@ byte	whiteshifts[NUMREDSHIFTS][768];
 int		damagecount,bonuscount;
 bool	palshifted;
 
-extern 	byte	far	gamepal;
+extern 	byte	gamepal;
 
 /*
 =====================

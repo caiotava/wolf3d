@@ -56,7 +56,7 @@ void DebugMemory (void)
 	int	i;
 	char    scratch[80],str[10];
 	long	mem;
-	spritetype _seg	*block;
+	spritetype *block;
 
 	CenterWindow (16,7);
 
@@ -139,7 +139,7 @@ void PicturePause (void)
 	int			i;
 	byte		p;
 	unsigned	x;
-	byte		far	*dest,*src;
+	byte		*dest,*src;
 	memptr		buffer;
 
 	VW_ColorBorder (15);
@@ -217,7 +217,7 @@ void PicturePause (void)
 void ShapeTest (void)
 {
 extern	word	NumDigi;
-extern	word	_seg *DigiList;
+extern	word	*DigiList;
 static	char	buf[10];
 
 	bool			done;

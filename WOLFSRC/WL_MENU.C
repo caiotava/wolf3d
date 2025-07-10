@@ -3723,7 +3723,7 @@ int GetYorN(int x,int y,int pic)
 void Message(char *string)
 {
 	int h=0,w=0,mw=0,i,x,y,time;
-	fontstruct _seg *font;
+	fontstruct *font;
 
 
 	CA_CacheGrChunk (STARTFONT+1);

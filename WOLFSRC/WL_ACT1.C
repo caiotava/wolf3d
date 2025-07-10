@@ -553,9 +553,9 @@ void DoorOpen (int door)
 
 void DoorOpening (int door)
 {
-	int		area1,area2;
-	unsigned	far	*map;
-	long	position;
+	int		 area1,area2;
+	unsigned *map;
+	long	 position;
 
 	position = doorposition[door];
 	if (!position)
@@ -616,10 +616,10 @@ void DoorOpening (int door)
 
 void DoorClosing (int door)
 {
-	int		area1,area2,move;
-	unsigned	far	*map;
-	long	position;
-	int		tilex,tiley;
+	int		 area1,area2,move;
+	unsigned *map;
+	long	 position;
+	int		 tilex,tiley;
 
 	tilex = doorobjlist[door].tilex;
 	tiley = doorobjlist[door].tiley;

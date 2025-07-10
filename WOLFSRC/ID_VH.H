@@ -48,9 +48,9 @@ typedef struct
 //===========================================================================
 
 
-extern	pictabletype	_seg *pictable;
-extern	pictabletype	_seg *picmtable;
-extern	spritetabletype _seg *spritetable;
+extern	pictabletype	*pictable;
+extern	pictabletype	*picmtable;
+extern	spritetabletype *spritetable;
 
 extern	byte	fontcolor;
 extern	int	fontnumber;
@@ -89,7 +89,7 @@ void VWB_Vlin (int y1, int y2, int x, int color);
 //
 // wolfenstein EGA compatability stuff
 //
-extern byte far gamepal;
+extern byte gamepal;
 
 void VH_SetDefaultColors (void);
 

@@ -222,7 +222,7 @@ void ScanInfoPlane (void)
 {
 	unsigned	x,y,i,j;
 	int			tile;
-	unsigned	far	*start;
+	unsigned	*start;
 
 	start = mapsegs[1];
 	for (y=0;y<mapheight;y++)

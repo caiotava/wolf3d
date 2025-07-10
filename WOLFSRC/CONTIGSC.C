@@ -18,9 +18,9 @@ long			fullscalefarcall[MAXSCALEHEIGHT+1];
 
 int			maxscale,maxscaleshl2;
 
-byte far	*scalermemory;
-byte _seg	*endscalermemory;
-long		freescalermemory;
+byte *scalermemory;
+byte *endscalermemory;
+long freescalermemory;
 
 
 /*
@@ -89,7 +89,7 @@ long SetupScaling (int maxscaleheight)
 		size = BuildCompScale (i*2,dest);
 		dest += size;
 
-		if ((byte huge *)dest-(byte huge *)scalermemory > MAXSCALERMEMORY)
+		if ((byte*)dest-(byte*)scalermemory > MAXSCALERMEMORY)
 			Quit ("Compiled scalars exceeded allocated space!");
 
 		if (i>=stepbytwo)
@@ -122,8 +122,8 @@ long SetupScaling (int maxscaleheight)
 
 	seg = FP_SEG(dest);
 	ofs = (FP_OFF(dest)+15)&~15;
-	endscalermemory = (void _seg *)(seg+ofs/16);
-	size = (byte huge *)dest-(byte huge *)scalermemory;
+	endscalermemory = (void*)(seg+ofs/16);
+	size = (byte*)dest-(byte*)scalermemory;
 	freescalermemory = MAXSCALERMEMORY-16-size;
 
 	return size;
@@ -246,7 +246,7 @@ extern	unsigned	maskword;
 byte	mask1,mask2,mask3;
 
 
-void near ScaleLine (void)
+void ScaleLine (void)
 {
 asm	mov	cx,WORD PTR [linescale+2]
 asm	mov	es,cx						// segment of scaler
@@ -420,7 +420,7 @@ static	long		longtemp;
 
 void ScaleShape (int xcenter, int shapenum, unsigned height)
 {
-	t_compshape	_seg *shape;
+	t_compshape	*shape;
 	t_compscale *comptable;
 	unsigned	scale,srcx,stopx,tempx;
 	int			t;
@@ -624,7 +624,7 @@ void ScaleShape (int xcenter, int shapenum, unsigned height)
 
 void SimpleScaleShape (int xcenter, int shapenum, unsigned height)
 {
-	t_compshape	_seg *shape;
+	t_compshape	*shape;
 	t_compscale *comptable;
 	unsigned	scale,srcx,stopx,tempx;
 	int			t;

@@ -9,7 +9,7 @@ int		spanstart[MAXVIEWHEIGHT/2];
 fixed	stepscale[MAXVIEWHEIGHT/2];
 fixed	basedist[MAXVIEWHEIGHT/2];
 
-extern	char	far	planepics[8192];	// 4k of ceiling, 4k of floor
+extern	char planepics[8192];	// 4k of ceiling, 4k of floor
 
 int		halfheight = 0;
 
@@ -50,7 +50,7 @@ void DrawSpans (int x1, int x2, int height)
 	fixed		startxfrac, startyfrac;
 
 	int			x, startx, count, plane, startplane;
-	byte		far	*toprow, *dest;
+	byte		*toprow, *dest;
 
 	toprow = planeylookup[height]+bufferofs;
 	mr_rowofs = mirrorofs[height];

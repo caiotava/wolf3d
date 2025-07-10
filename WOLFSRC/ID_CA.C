@@ -96,8 +96,8 @@ char extension[5],	// Need a string, not constant to change cache files
 
 void CA_CannotOpen(char *string);
 
-long		_seg *grstarts;	// array of offsets in egagraph, -1 for sparse
-long		_seg *audiostarts;	// array of offsets in audio / audiot
+long		*grstarts;	// array of offsets in egagraph, -1 for sparse
+long		*audiostarts;	// array of offsets in audio / audiot
 
 #ifdef GRHEADERLINKED
 huffnode	*grhuffman;
@@ -415,7 +415,7 @@ void CAL_OptimizeNodes (huffnode *table)
 ======================
 */
 
-void CAL_HuffExpand (byte huge *source, byte huge *dest,
+void CAL_HuffExpand (byte *source, byte *dest,
   long length,huffnode *hufftable, bool screenhack)
 {
 //  unsigned bit,byte,node,code;
@@ -674,12 +674,12 @@ void CAL_CarmackExpand (unsigned *source, unsigned *dest, unsigned length)
 ======================
 */
 
-long CA_RLEWCompress (unsigned huge *source, long length, unsigned huge *dest,
+long CA_RLEWCompress (unsigned *source, long length, unsigned *dest,
   unsigned rlewtag)
 {
   long complength;
   unsigned value,count,i;
-  unsigned huge *start,huge *end;
+  unsigned *start, *end;
 
   start = dest;
 
@@ -731,11 +731,11 @@ long CA_RLEWCompress (unsigned huge *source, long length, unsigned huge *dest,
 ======================
 */
 
-void CA_RLEWexpand (unsigned huge *source, unsigned huge *dest,long length,
+void CA_RLEWexpand (unsigned *source, unsigned *dest,long length,
   unsigned rlewtag)
 {
 //  unsigned value,count,i;
-  unsigned huge *end;
+  unsigned *end;
   unsigned sourceseg,sourceoff,destseg,destoff,endseg,endoff;
 
 
@@ -867,7 +867,7 @@ void CAL_SetupGrFile (void)
 #ifdef GRHEADERLINKED
 
 	grhuffman = (huffnode *)&EGAdict;
-	grstarts = (long _seg *)FP_SEG(&EGAhead);
+	grstarts = (long*)FP_SEG(&EGAhead);
 
 	CAL_OptimizeNodes (grhuffman);
 
@@ -924,7 +924,7 @@ void CAL_SetupGrFile (void)
 	CAL_GetGrChunkLength(STRUCTPIC);		// position file pointer
 	MM_GetPtr(&compseg,chunkcomplen);
 	CA_FarRead (grhandle,compseg,chunkcomplen);
-	CAL_HuffExpand (compseg, (byte huge *)pictable,NUMPICS*sizeof(pictabletype),grhuffman,false);
+	CAL_HuffExpand (compseg, (byte*)pictable,NUMPICS*sizeof(pictabletype),grhuffman,false);
 	MM_FreePtr(&compseg);
 }
 
@@ -963,7 +963,7 @@ void CAL_SetupMapFile (void)
 	close(handle);
 #else
 
-	tinf = (byte _seg *)FP_SEG(&maphead);
+	tinf = (byte*)FP_SEG(&maphead);
 
 #endif
 
@@ -991,7 +991,7 @@ void CAL_SetupMapFile (void)
 //
 	for (i=0;i<NUMMAPS;i++)
 	{
-		pos = ((mapfiletype	_seg *)tinf)->headeroffsets[i];
+		pos = ((mapfiletype*)tinf)->headeroffsets[i];
 		if (pos<0)						// $FFFFFFFF start is a sparse map
 			continue;
 
@@ -1047,7 +1047,7 @@ void CAL_SetupAudioFile (void)
 #else
 	audiohuffman = (huffnode *)&audiodict;
 	CAL_OptimizeNodes (audiohuffman);
-	audiostarts = (long _seg *)FP_SEG(&audiohead);
+	audiostarts = (long*)FP_SEG(&audiohead);
 #endif
 
 //
@@ -1431,7 +1431,7 @@ void CA_CacheMap (int mapnum)
 	int		plane;
 	memptr	*dest,bigbufferseg;
 	unsigned	size;
-	unsigned	far	*source;
+	unsigned	*source;
 #ifdef CARMACIZED
 	memptr	buffer2seg;
 	long	expanded;
@@ -1474,7 +1474,7 @@ void CA_CacheMap (int mapnum)
 		MM_GetPtr (&buffer2seg,expanded);
 		CAL_CarmackExpand (source, (unsigned *)buffer2seg,expanded);
 		CA_RLEWexpand (((unsigned *)buffer2seg)+1,*dest,size,
-		((mapfiletype _seg *)tinf)->RLEWtag);
+		((mapfiletype*)tinf)->RLEWtag);
 		MM_FreePtr (&buffer2seg);
 
 #else
@@ -1482,7 +1482,7 @@ void CA_CacheMap (int mapnum)
 		// unRLEW, skipping expanded length
 		//
 		CA_RLEWexpand (source+1, *dest,size,
-		((mapfiletype _seg *)tinf)->RLEWtag);
+		((mapfiletype*)tinf)->RLEWtag);
 #endif
 
 		if (compressed>BUFFERSIZE)
@@ -1703,7 +1703,7 @@ void CA_CacheMarks (void)
 				&& bufferend>= endpos)
 				{
 				// data is allready in buffer
-					source = (byte _seg *)bufferseg+(pos-bufferstart);
+					source = (byte*)bufferseg+(pos-bufferstart);
 				}
 				else
 				{
