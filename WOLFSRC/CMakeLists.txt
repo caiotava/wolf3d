@@ -15,7 +15,6 @@ add_executable(wolf3d
     ID_VH.C
     ID_VL.C
     MUNGE.C
-    OLDSCALE.C
     WL_ACT1.C
     WL_ACT2.C
     WL_AGENT.C
