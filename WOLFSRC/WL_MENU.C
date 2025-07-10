@@ -24,7 +24,7 @@ void CP_ReadThis(void);
 #endif
 #endif
 
-char far endStrings[9][80]=
+char endStrings[9][80]=
 {
 #ifndef SPEAR
 	{"Dost thou wish to\nleave with such hasty\nabandon?"},
@@ -59,8 +59,7 @@ CP_iteminfo
 	NewItems={NM_X,NM_Y,4,2,24};
 
 #pragma warn -sus
-CP_itemtype far
-MainMenu[]=
+CP_itemtype MainMenu[]=
 {
 #ifdef JAPAN
 	{1,"",CP_NewGame},
@@ -100,7 +99,7 @@ MainMenu[]=
 #endif
 },
 
-far SndMenu[]=
+SndMenu[]=
 {
 #ifdef JAPAN
 	{1,"",0},
@@ -131,7 +130,7 @@ far SndMenu[]=
 #endif
 },
 
-far CtlMenu[]=
+CtlMenu[]=
 {
 #ifdef JAPAN
 	{0,"",0},
@@ -153,7 +152,7 @@ far CtlMenu[]=
 #pragma warn +sus
 
 #ifndef SPEAR
-far NewEmenu[]=
+NewEmenu[]=
 {
 #ifdef JAPAN
 #ifdef JAPDEMO
@@ -226,7 +225,7 @@ far NewEmenu[]=
 #endif
 
 
-far NewMenu[]=
+NewMenu[]=
 {
 #ifdef JAPAN
 	{1,"",0},
@@ -241,7 +240,7 @@ far NewMenu[]=
 #endif
 },
 
-far LSMenu[]=
+LSMenu[]=
 {
 	{1,"",0},
 	{1,"",0},
@@ -255,7 +254,7 @@ far LSMenu[]=
 	{1,"",0}
 },
 
-far CusMenu[]=
+CusMenu[]=
 {
 	{1,"",0},
 	{0,"",0},
@@ -308,7 +307,7 @@ static byte
 	"?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?",
 	"?","?","?","?","?","?","?","?","?","?","?","?","?","?","?","?"
 					},	// DEBUG - consolidate these
-					far ExtScanCodes[] =	// Scan codes with >1 char names
+					ExtScanCodes[] =	// Scan codes with >1 char names
 					{
 	1,0xe,0xf,0x1d,0x2a,0x39,0x3a,0x3b,0x3c,0x3d,0x3e,
 	0x3f,0x40,0x41,0x42,0x43,0x44,0x57,0x59,0x46,0x1c,0x36,
@@ -1559,7 +1558,7 @@ int CP_SaveGame(int quick)
 
 			strcpy(input,&SaveGameNames[which][0]);
 
-			_dos_write(handle,(void far *)input,32,&nwritten);
+			_dos_write(handle,(void*)input,32,&nwritten);
 			lseek(handle,32,SEEK_SET);
 			SaveTheGame(handle,0,0);
 			close(handle);
@@ -1618,7 +1617,7 @@ int CP_SaveGame(int quick)
 
 				unlink(name);
 				handle=creat(name,S_IREAD|S_IWRITE);
-				_dos_write(handle,(void far *)input,32,&nwritten);
+				_dos_write(handle,(void *)input,32,&nwritten);
 				lseek(handle,32,SEEK_SET);
 
 				DrawLSAction(1);
@@ -3881,18 +3880,18 @@ void ShootSnd(void)
 ///////////////////////////////////////////////////////////////////////////
 void CheckForEpisodes(void)
 {
-	struct ffblk f;
+	PHYSFS_File *f;
 
 //
 // JAPANESE VERSION
 //
 #ifdef JAPAN
 #ifdef JAPDEMO
-	if (!findfirst("*.WJ1",&f,FA_ARCH))
+	if ((f = fs_findFirst("/", ".WJ1")))
 	{
 		strcpy(extension,"WJ1");
 #else
-	if (!findfirst("*.WJ6",&f,FA_ARCH))
+	if ((f = fs_findFirst("/", ".WJ6")))
 	{
 		strcpy(extension,"WJ6");
 #endif
@@ -3916,7 +3915,7 @@ void CheckForEpisodes(void)
 //
 #ifndef UPLOAD
 #ifndef SPEAR
-	if (!findfirst("*.WL6",&f,FA_ARCH))
+	if ((f = fs_findFirst("/", ".WL6")))
 	{
 		strcpy(extension,"WL6");
 		NewEmenu[2].active =
@@ -3931,7 +3930,7 @@ void CheckForEpisodes(void)
 		EpisodeSelect[5] = 1;
 	}
 	else
-	if (!findfirst("*.WL3",&f,FA_ARCH))
+	if ((f = fs_findFirst("/", ".WL3")))
 	{
 		strcpy(extension,"WL3");
 		NewEmenu[2].active =
@@ -3943,18 +3942,19 @@ void CheckForEpisodes(void)
 #endif
 #endif
 
-
-
+//
+// SPEAR
+//
 #ifdef SPEAR
 #ifndef SPEARDEMO
-	if (!findfirst("*.SOD",&f,FA_ARCH))
+	if ((f = fs_findFirst("/", ".SOD")))
 	{
 		strcpy(extension,"SOD");
 	}
 	else
 		Quit("NO SPEAR OF DESTINY DATA FILES TO BE FOUND!");
 #else
-	if (!findfirst("*.SDM",&f,FA_ARCH))
+	if ((f = fs_findFirst("/", ".SDM")))
 	{
 		strcpy(extension,"SDM");
 	}
@@ -3963,7 +3963,7 @@ void CheckForEpisodes(void)
 #endif
 
 #else
-	if (!findfirst("*.WL1",&f,FA_ARCH))
+	if ((f = fs_findFirst("/", ".WL1")))
 	{
 		strcpy(extension,"WL1");
 	}

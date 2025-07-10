@@ -1,6 +1,5 @@
 // WL_MAIN.C
 
-#include <conio.h>
 #include "WL_DEF.H"
 #pragma hdrstop
 
@@ -64,7 +63,7 @@ int                     minheightdiv;
 
 void            Quit (char *error);
 
-boolean         startgame,loadedgame,virtualreality;
+boolean         startgame,loadedgame
 int             mouseadjustment;
 
 char	configname[13]="CONFIG.";
@@ -1348,9 +1347,6 @@ void Quit (char *error)
 	unsigned        finscreen;
 	memptr	screen;
 
-	if (virtualreality)
-		geninterrupt(0x61);
-
 	ClearMemory ();
 	if (!*error)
 	{
@@ -1583,10 +1579,9 @@ void    DemoLoop (void)
 
 char    *nosprtxt[] = {"nospr",nil};
 
-void main (void)
+int main (int argc, char *argv[])
 {
 	int     i;
-
 
 #ifdef BETA
 	//
@@ -1612,5 +1607,7 @@ void main (void)
 	DemoLoop();
 
 	Quit("Demo loop exited???");
+
+	return 0;
 }
 
