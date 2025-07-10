@@ -50,7 +50,7 @@ typedef struct mmblockstruct
 	unsigned	start,length;
 	unsigned	attributes;
 	memptr		*useptr;	// pointer to the segment start
-	struct mmblockstruct far *next;
+	struct mmblockstruct *next;
 } mmblocktype;
 
 
@@ -89,14 +89,14 @@ boolean		mmstarted;
 void far	*farheap;
 void		*nearheap;
 
-mmblocktype	far mmblocks[MAXBLOCKS]
-			,far *mmhead,far *mmfree,far *mmrover,far *mmnew;
+mmblocktype	mmblocks[MAXBLOCKS]
+			,*mmhead,*mmfree,*mmrover,*mmnew;
 
 boolean		bombonerror;
 
 //unsigned	totalEMSpages,freeEMSpages,EMSpageframe,EMSpagesmapped,EMShandle;
 
-void		(* XMSaddr) (void);		// far pointer to XMS driver
+void		(* XMSaddr) (void);		// pointer to XMS driver
 
 unsigned	numUMBs,UMBbase[MAXUMBS];
 
@@ -236,7 +236,7 @@ asm	call	[DWORD PTR XMSaddr]
 
 void MML_UseSpace (unsigned segstart, unsigned seglength)
 {
-	mmblocktype far *scan,far *last;
+	mmblocktype *scan,*last;
 	unsigned	oldend;
 	long		extra;
 
@@ -297,7 +297,7 @@ void MML_UseSpace (unsigned segstart, unsigned seglength)
 
 void MML_ClearBlock (void)
 {
-	mmblocktype far *scan,far *last;
+	mmblocktype *scan,*last;
 
 	scan = mmhead->next;
 
@@ -334,7 +334,7 @@ void MM_Startup (void)
 {
 	int i;
 	unsigned 	long length;
-	void far 	*start;
+	void 	*start;
 	unsigned 	segstart,seglength,endfree;
 
 	if (mmstarted)
@@ -368,7 +368,7 @@ void MM_Startup (void)
 // get all available near conventional memory segments
 //
 	length=coreleft();
-	start = (void far *)(nearheap = malloc(length));
+	start = (void *)(nearheap = malloc(length));
 
 	length -= 16-(FP_OFF(start)&15);
 	length -= SAVENEARHEAP;
@@ -378,7 +378,7 @@ void MM_Startup (void)
 	mminfo.nearheap = length;
 
 //
-// get all available far conventional memory segments
+// get all available conventional memory segments
 //
 	length=farcoreleft();
 	start = farheap = farmalloc(length);
@@ -434,8 +434,8 @@ void MM_Shutdown (void)
 
 void MM_GetPtr (memptr *baseptr,unsigned long size)
 {
-	mmblocktype far *scan,far *lastscan,far *endscan
-				,far *purge,far *next;
+	mmblocktype *scan,*lastscan,*endscan
+				,*purge,*next;
 	int			search;
 	unsigned	needed,startseg;
 
@@ -529,7 +529,7 @@ boolean SetViewSize (unsigned width, unsigned height);
 //
 		if (!insetupscaling && viewsize>10)
 		{
-mmblocktype	far *savedmmnew;
+mmblocktype	*savedmmnew;
 			savedmmnew = mmnew;
 			viewsize -= 2;
 			SetViewSize (viewsize*16,viewsize*16*HEIGHTRATIO);
@@ -558,7 +558,7 @@ mmblocktype	far *savedmmnew;
 
 void MM_FreePtr (memptr *baseptr)
 {
-	mmblocktype far *scan,far *last;
+	mmblocktype *scan,*last;
 
 	last = mmhead;
 	scan = last->next;
@@ -593,7 +593,7 @@ void MM_FreePtr (memptr *baseptr)
 
 void MM_SetPurge (memptr *baseptr, int purge)
 {
-	mmblocktype far *start;
+	mmblocktype *start;
 
 	start = mmrover;
 
@@ -629,7 +629,7 @@ void MM_SetPurge (memptr *baseptr, int purge)
 
 void MM_SetLock (memptr *baseptr, boolean locked)
 {
-	mmblocktype far *start;
+	mmblocktype *start;
 
 	start = mmrover;
 
@@ -665,7 +665,7 @@ void MM_SetLock (memptr *baseptr, boolean locked)
 
 void MM_SortMem (void)
 {
-	mmblocktype far *scan,far *last,far *next;
+	mmblocktype *scan,*last,*next;
 	unsigned	start,length,source,dest;
 	int			playing;
 
@@ -771,7 +771,7 @@ void MM_SortMem (void)
 
 void MM_ShowMemory (void)
 {
-	mmblocktype far *scan;
+	mmblocktype *scan;
 	unsigned color,temp,x,y;
 	long	end,owner;
 	char    scratch[80],str[10];
@@ -821,7 +821,7 @@ void MM_ShowMemory (void)
 
 void MM_DumpData (void)
 {
-	mmblocktype far *scan,far *best;
+	mmblocktype *scan,*best;
 	long	lowest,oldlowest;
 	unsigned	owner;
 	char	lock,purge;
@@ -889,7 +889,7 @@ void MM_DumpData (void)
 long MM_UnusedMemory (void)
 {
 	unsigned free;
-	mmblocktype far *scan;
+	mmblocktype *scan;
 
 	free = 0;
 	scan = mmhead;
@@ -919,7 +919,7 @@ long MM_UnusedMemory (void)
 long MM_TotalFree (void)
 {
 	unsigned free;
-	mmblocktype far *scan;
+	mmblocktype *scan;
 
 	free = 0;
 	scan = mmhead;

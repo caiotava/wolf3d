@@ -275,7 +275,7 @@ int			doornum;
 unsigned	doorposition[MAXDOORS];		// leading edge of door 0=closed
 										// 0xffff = fully open
 
-byte		far areaconnect[NUMAREAS][NUMAREAS];
+byte		areaconnect[NUMAREAS][NUMAREAS];
 
 boolean		areabyplayer[NUMAREAS];
 
@@ -350,7 +350,7 @@ void InitDoorList (void)
 void SpawnDoor (int tilex, int tiley, boolean vertical, int lock)
 {
 	int	areanumber;
-	unsigned	far *map;
+	unsigned	*map;
 
 	if (doornum==64)
 		Quit ("64+ doors on level!");

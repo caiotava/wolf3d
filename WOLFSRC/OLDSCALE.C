@@ -41,7 +41,7 @@ int			stepbytwo;
 ==============
 */
 
-void far BadScale (void)
+void BadScale (void)
 {
 	Quit ("BadScale called!");
 }
@@ -58,7 +58,7 @@ void far BadScale (void)
 void SetupScaling (int maxscaleheight)
 {
 	int		i,x,y;
-	byte	far *dest;
+	byte	*dest;
 
 	maxscaleheight/=2;			// one scaler every two pixels
 
@@ -154,7 +154,7 @@ void SetupScaling (int maxscaleheight)
 
 unsigned BuildCompScale (int height, memptr *finalspot)
 {
-	byte		far *code;
+	byte		*code;
 
 	int			i;
 	long		fix,step;
@@ -212,7 +212,7 @@ unsigned BuildCompScale (int height, memptr *finalspot)
 			*code++ = 0x26;
 			*code++ = 0x88;
 			*code++ = 0x85;
-			*((unsigned far *)code)++ = startpix*SCREENBWIDE;
+			*((unsigned *)code)++ = startpix*SCREENBWIDE;
 		}
 
 	}
@@ -243,7 +243,7 @@ unsigned BuildCompScale (int height, memptr *finalspot)
 */
 
 extern	int			slinex,slinewidth;
-extern	unsigned	far *linecmds;
+extern	unsigned	*linecmds;
 extern	long		linescale;
 extern	unsigned	maskword;
 
@@ -428,7 +428,7 @@ void ScaleShape (int xcenter, int shapenum, unsigned height)
 	t_compscale _seg *comptable;
 	unsigned	scale,srcx,stopx,tempx;
 	int			t;
-	unsigned	far *cmdptr;
+	unsigned	*cmdptr;
 	boolean		leftvis,rightvis;
 
 
@@ -632,7 +632,7 @@ void SimpleScaleShape (int xcenter, int shapenum, unsigned height)
 	t_compscale _seg *comptable;
 	unsigned	scale,srcx,stopx,tempx;
 	int			t;
-	unsigned	far *cmdptr;
+	unsigned	*cmdptr;
 	boolean		leftvis,rightvis;
 
 
@@ -731,7 +731,7 @@ unsigned	wordmasks[8][8] = {
 {0x0001,0x8001,0xc001,0xe001,0xf001,0xf801,0xfc01,0xfe01} };
 
 int			slinex,slinewidth;
-unsigned	far *linecmds;
+unsigned	*linecmds;
 long		linescale;
 unsigned	maskword;
 

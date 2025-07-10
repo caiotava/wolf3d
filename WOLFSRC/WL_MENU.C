@@ -3102,7 +3102,7 @@ void CleanupControlPanel(void)
 // Handle moving gun around a menu
 //
 ////////////////////////////////////////////////////////////////////
-int HandleMenu(CP_iteminfo *item_i,CP_itemtype far *items,void (*routine)(int w))
+int HandleMenu(CP_iteminfo *item_i,CP_itemtype *items,void (*routine)(int w))
 {
 	char key;
 	static int redrawitem=1,lastitem=-1;
@@ -3348,7 +3348,7 @@ int HandleMenu(CP_iteminfo *item_i,CP_itemtype far *items,void (*routine)(int w)
 //
 // ERASE GUN & DE-HIGHLIGHT STRING
 //
-void EraseGun(CP_iteminfo *item_i,CP_itemtype far *items,int x,int y,int which)
+void EraseGun(CP_iteminfo *item_i,CP_itemtype *items,int x,int y,int which)
 {
 	VWB_Bar(x-1,y,25,16,BKGDCOLOR);
 	SetTextColor(items+which,0);
@@ -3376,7 +3376,7 @@ void DrawHalfStep(int x,int y)
 //
 // DRAW GUN AT NEW POSITION
 //
-void DrawGun(CP_iteminfo *item_i,CP_itemtype far *items,int x,int *y,int which,int basey,void (*routine)(int w))
+void DrawGun(CP_iteminfo *item_i,CP_itemtype *items,int x,int *y,int which,int basey,void (*routine)(int w))
 {
 	VWB_Bar(x-1,*y,25,16,BKGDCOLOR);
 	*y=basey+which*13;
@@ -3419,7 +3419,7 @@ void TicDelay(int count)
 // Draw a menu
 //
 ////////////////////////////////////////////////////////////////////
-void DrawMenu(CP_iteminfo *item_i,CP_itemtype far *items)
+void DrawMenu(CP_iteminfo *item_i,CP_itemtype *items)
 {
 	int i,which=item_i->curpos;
 
@@ -3453,7 +3453,7 @@ void DrawMenu(CP_iteminfo *item_i,CP_itemtype far *items)
 // SET TEXT COLOR (HIGHLIGHT OR NO)
 //
 ////////////////////////////////////////////////////////////////////
-void SetTextColor(CP_itemtype far *items,int hlight)
+void SetTextColor(CP_itemtype *items,int hlight)
 {
 	if (hlight)
 		{SETFONTCOLOR(color_hlite[items->active],BKGDCOLOR);}
@@ -3588,7 +3588,7 @@ void ReadAnyControl(ControlInfo *ci)
 // DRAW DIALOG AND CONFIRM YES OR NO TO QUESTION
 //
 ////////////////////////////////////////////////////////////////////
-int Confirm(char far *string)
+int Confirm(char *string)
 {
 	int xit=0,i,x,y,tick=0,time,whichsnd[2]={ESCPRESSEDSND,SHOOTSND};
 
@@ -3720,7 +3720,7 @@ int GetYorN(int x,int y,int pic)
 // PRINT A MESSAGE IN A WINDOW
 //
 ////////////////////////////////////////////////////////////////////
-void Message(char far *string)
+void Message(char *string)
 {
 	int h=0,w=0,mw=0,i,x,y,time;
 	fontstruct _seg *font;
@@ -3781,7 +3781,7 @@ void StartCPMusic(int song)
 	else
 	{
 		MM_SetLock(&((memptr)audiosegs[STARTMUSIC + chunk]),true);
-		SD_StartMusic((MusicGroup far *)audiosegs[STARTMUSIC + chunk]);
+		SD_StartMusic((MusicGroup *)audiosegs[STARTMUSIC + chunk]);
 	}
 }
 
@@ -3802,7 +3802,7 @@ byte *
 IN_GetScanName(ScanCode scan)
 {
 	byte		**p;
-	ScanCode	far *s;
+	ScanCode	*s;
 
 	for (s = ExtScanCodes,p = ExtScanNames;*s;p++,s++)
 		if (*s == scan)

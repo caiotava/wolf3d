@@ -65,9 +65,9 @@ PUBLIC	_jabhack2
 	mov	ax,seg LDIV@
 	mov	es,ax
 	mov	ax,[WORD PTR @@where]
-	mov	[WORD FAR es:LDIV@],ax
+	mov	[WORD es:LDIV@],ax
 	mov	ax,[WORD PTR @@where+2]
-	mov	[WORD FAR es:LDIV@+2],ax
+	mov	[WORD es:LDIV@+2],ax
 
 	mov	ax,offset @@jabdiv
 	mov	[_intaddr],ax

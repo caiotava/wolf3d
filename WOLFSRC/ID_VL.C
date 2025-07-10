@@ -25,7 +25,7 @@ unsigned	bordercolor;
 
 boolean		fastpalette;				// if true, use outsb to set
 
-byte		far	palette1[256][3],far palette2[256][3];
+byte		far	palette1[256][3],palette2[256][3];
 
 //===========================================================================
 
@@ -368,7 +368,7 @@ void VL_GetColor	(int color, int *red, int *green, int *blue)
 =================
 */
 
-void VL_SetPalette (byte far *palette)
+void VL_SetPalette (byte *palette)
 {
 	int	i;
 
@@ -425,7 +425,7 @@ done:
 =================
 */
 
-void VL_GetPalette (byte far *palette)
+void VL_GetPalette (byte *palette)
 {
 	int	i;
 
@@ -450,7 +450,7 @@ void VL_GetPalette (byte far *palette)
 void VL_FadeOut (int start, int end, int red, int green, int blue, int steps)
 {
 	int		i,j,orig,delta;
-	byte	far *origptr, far *newptr;
+	byte	*origptr, *newptr;
 
 	VL_WaitVBL(1);
 	VL_GetPalette (&palette1[0][0]);
@@ -497,7 +497,7 @@ void VL_FadeOut (int start, int end, int red, int green, int blue, int steps)
 =================
 */
 
-void VL_FadeIn (int start, int end, byte far *palette, int steps)
+void VL_FadeIn (int start, int end, byte *palette, int steps)
 {
 	int		i,j,delta;
 
@@ -604,7 +604,7 @@ void VL_Plot (int x, int y, int color)
 
 	mask = pixmasks[x&3];
 	VGAMAPMASK(mask);
-	*(byte far *)MK_FP(SCREENSEG,bufferofs+(ylookup[y]+(x>>2))) = color;
+	*(byte *)MK_FP(SCREENSEG,bufferofs+(ylookup[y]+(x>>2))) = color;
 	VGAMAPMASK(15);
 }
 
@@ -620,7 +620,7 @@ void VL_Plot (int x, int y, int color)
 void VL_Hlin (unsigned x, unsigned y, unsigned width, unsigned color)
 {
 	unsigned		xbyte;
-	byte			far *dest;
+	byte			*dest;
 	byte			leftmask,rightmask;
 	int				midbytes;
 
@@ -664,7 +664,7 @@ void VL_Hlin (unsigned x, unsigned y, unsigned width, unsigned color)
 
 void VL_Vlin (int x, int y, int height, int color)
 {
-	byte	far *dest,mask;
+	byte	*dest,mask;
 
 	mask = pixmasks[x&3];
 	VGAMAPMASK(mask);
@@ -691,7 +691,7 @@ void VL_Vlin (int x, int y, int height, int color)
 
 void VL_Bar (int x, int y, int width, int height, int color)
 {
-	byte	far *dest;
+	byte	*dest;
 	byte	leftmask,rightmask;
 	int		midbytes,linedelta;
 
@@ -749,7 +749,7 @@ void VL_Bar (int x, int y, int width, int height, int color)
 =================
 */
 
-void VL_MemToLatch (byte far *source, int width, int height, unsigned dest)
+void VL_MemToLatch (byte *source, int width, int height, unsigned dest)
 {
 	unsigned	count;
 	byte	plane,mask;
@@ -788,9 +788,9 @@ asm	mov	ds,ax
 =================
 */
 
-void VL_MemToScreen (byte far *source, int width, int height, int x, int y)
+void VL_MemToScreen (byte *source, int width, int height, int x, int y)
 {
-	byte    far *screen,far *dest,mask;
+	byte    *screen,*dest,mask;
 	int		plane;
 
 	width>>=2;
@@ -823,10 +823,10 @@ void VL_MemToScreen (byte far *source, int width, int height, int x, int y)
 =================
 */
 
-void VL_MaskedToScreen (byte far *source, int width, int height, int x, int y)
+void VL_MaskedToScreen (byte *source, int width, int height, int x, int y)
 {
-	byte    far *screen,far *dest,mask;
-	byte	far *maskptr;
+	byte    *screen,*dest,mask;
+	byte	*maskptr;
 	int		plane;
 
 	width>>=2;
@@ -957,16 +957,16 @@ asm	mov	ds,ax
 ===================
 */
 
-void VL_DrawTile8String (char *str, char far *tile8ptr, int printx, int printy)
+void VL_DrawTile8String (char *str, char *tile8ptr, int printx, int printy)
 {
 	int		i;
-	unsigned	far *dest,far *screen,far *src;
+	unsigned	*dest,*screen,*src;
 
 	dest = MK_FP(SCREENSEG,bufferofs+ylookup[printy]+(printx>>2));
 
 	while (*str)
 	{
-		src = (unsigned far *)(tile8ptr + (*str<<6));
+		src = (unsigned *)(tile8ptr + (*str<<6));
 		// each character is 64 bytes
 
 		VGAMAPMASK(1);

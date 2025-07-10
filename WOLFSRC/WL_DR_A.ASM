@@ -13,7 +13,7 @@ DEG360		=	3600
 OP_JLE		=	07eh
 OP_JGE		=	07dh
 
-EXTRN	finetangent:DWORD	; far array, starts at offset 0
+EXTRN	finetangent:DWORD	; array, starts at offset 0
 
 EXTRN	HitHorizWall:FAR
 EXTRN	HitVertWall:FAR
@@ -466,7 +466,7 @@ notvertdoor:
 	mov	[xtile],bx
 	mov	[WORD yintercept+2],dx
 	mov	[ytile],dx
-	call FAR HitVertWall
+	call HitVertWall
 	jmp nextpix
 
 
@@ -505,7 +505,7 @@ hithoriz:
 	mov	[WORD yintercept],0
 	mov	[WORD yintercept+2],bp
 	mov	[ytile],bp
-	call FAR HitHorizWall
+	call HitHorizWall
 	jmp nextpix
 
 ;---------------------------------------------------------------------------
@@ -579,7 +579,7 @@ hithmid:
 	mov	[WORD yintercept],8000h		; intercept in middle of tile
 	mov	[WORD yintercept+2],bp
 
-	call	FAR HitHorizDoor
+	call	HitHorizDoor
 	jmp	nextpix
 
 ;============
@@ -624,7 +624,7 @@ horizpushwall:
 	mov	[WORD yintercept+2],bp
 	mov	[WORD yintercept],0
 
-	call	FAR HitHorizPWall
+	call	HitHorizPWall
 	jmp	nextpix
 
 
@@ -680,7 +680,7 @@ hitvmid:
 	mov	ax,[xtile]
 	mov	[WORD xintercept+2],ax
 
-	call	FAR HitVertDoor
+	call	HitVertDoor
 	jmp	nextpix
 
 ;============
@@ -726,7 +726,7 @@ vertpushwall:
 	mov	[WORD xintercept+2],bx
 	mov	[WORD xintercept],0
 
-	call	FAR HitVertPWall
+	call	HitVertPWall
 	jmp	nextpix
 
 

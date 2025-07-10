@@ -49,8 +49,8 @@ fixed	mindist		= MINDIST;
 // math tables
 //
 int			pixelangle[MAXVIEWWIDTH];
-long		far finetangent[FINEANGLES/4];
-fixed 		far sintable[ANGLES+ANGLES/4],far *costable = sintable+(ANGLES/4);
+long		finetangent[FINEANGLES/4];
+fixed 		sintable[ANGLES+ANGLES/4],*costable = sintable+(ANGLES/4);
 
 //
 // refresh variables

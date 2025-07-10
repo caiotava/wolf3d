@@ -68,7 +68,7 @@ int			viewsize;
 boolean		buttonheld[NUMBUTTONS];
 
 boolean		demorecord,demoplayback;
-char		far *demoptr, far *lastdemoptr;
+char		*demoptr, *lastdemoptr;
 memptr		demobuffer;
 
 //
@@ -1038,7 +1038,7 @@ void StartMusic(void)
 	else
 	{
 		MM_SetLock(&((memptr)audiosegs[STARTMUSIC + chunk]),true);
-		SD_StartMusic((MusicGroup far *)audiosegs[STARTMUSIC + chunk]);
+		SD_StartMusic((MusicGroup *)audiosegs[STARTMUSIC + chunk]);
 	}
 }
 
@@ -1059,8 +1059,8 @@ void StartMusic(void)
 #define WHITETICS		6
 
 
-byte	far redshifts[NUMREDSHIFTS][768];
-byte	far whiteshifts[NUMREDSHIFTS][768];
+byte	redshifts[NUMREDSHIFTS][768];
+byte	whiteshifts[NUMREDSHIFTS][768];
 
 int		damagecount,bonuscount;
 boolean	palshifted;
@@ -1077,7 +1077,7 @@ extern 	byte	far	gamepal;
 
 void InitRedShifts (void)
 {
-	byte	far *workptr, far *baseptr;
+	byte	*workptr, *baseptr;
 	int		i,j,delta;
 
 
@@ -1086,7 +1086,7 @@ void InitRedShifts (void)
 //
 	for (i=1;i<=NUMREDSHIFTS;i++)
 	{
-		workptr = (byte far *)&redshifts[i-1][0];
+		workptr = (byte *)&redshifts[i-1][0];
 		baseptr = &gamepal;
 
 		for (j=0;j<=255;j++)
@@ -1102,7 +1102,7 @@ void InitRedShifts (void)
 
 	for (i=1;i<=NUMWHITESHIFTS;i++)
 	{
-		workptr = (byte far *)&whiteshifts[i-1][0];
+		workptr = (byte *)&whiteshifts[i-1][0];
 		baseptr = &gamepal;
 
 		for (j=0;j<=255;j++)

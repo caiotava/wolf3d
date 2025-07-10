@@ -50,8 +50,8 @@ static	boolean		US_Started;
 					CursorBad;
 		int			CursorX,CursorY;
 
-		void		(*USL_MeasureString)(char far *,word *,word *) = VW_MeasurePropString,
-					(*USL_DrawString)(char far *) = VWB_DrawPropString;
+		void		(*USL_MeasureString)(char *,word *,word *) = VW_MeasurePropString,
+					(*USL_DrawString)(char *) = VWB_DrawPropString;
 
 		SaveGame	Games[MaxSaveGames];
 		HighScore	Scores[MaxScores] =
@@ -272,7 +272,7 @@ US_CheckParm(char *parm,char **strings)
 //
 ///////////////////////////////////////////////////////////////////////////
 void
-US_SetPrintRoutines(void (*measure)(char far *,word *,word *),void (*print)(char far *))
+US_SetPrintRoutines(void (*measure)(char *,word *,word *),void (*print)(char *))
 {
 	USL_MeasureString = measure;
 	USL_DrawString = print;
@@ -285,9 +285,9 @@ US_SetPrintRoutines(void (*measure)(char far *,word *,word *),void (*print)(char
 //
 ///////////////////////////////////////////////////////////////////////////
 void
-US_Print(char far *s)
+US_Print(char *s)
 {
-	char	c,far *se;
+	char	c,*se;
 	word	w,h;
 
 	while (*s)
@@ -348,7 +348,7 @@ US_PrintSigned(long n)
 //
 ///////////////////////////////////////////////////////////////////////////
 void
-USL_PrintInCenter(char far *s,Rect r)
+USL_PrintInCenter(char *s,Rect r)
 {
 	word	w,h,
 			rw,rh;
@@ -368,7 +368,7 @@ USL_PrintInCenter(char far *s,Rect r)
 //
 ///////////////////////////////////////////////////////////////////////////
 void
-US_PrintCentered(char far *s)
+US_PrintCentered(char *s)
 {
 	Rect	r;
 
@@ -387,7 +387,7 @@ US_PrintCentered(char far *s)
 //
 ///////////////////////////////////////////////////////////////////////////
 void
-US_CPrintLine(char far *s)
+US_CPrintLine(char *s)
 {
 	word	w,h;
 
@@ -408,9 +408,9 @@ US_CPrintLine(char far *s)
 //
 ///////////////////////////////////////////////////////////////////////////
 void
-US_CPrint(char far *s)
+US_CPrint(char *s)
 {
-	char	c,far *se;
+	char	c,*se;
 
 	while (*s)
 	{

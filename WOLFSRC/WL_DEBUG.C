@@ -139,7 +139,7 @@ void PicturePause (void)
 	int			i;
 	byte		p;
 	unsigned	x;
-	byte		far	*dest,far *src;
+	byte		far	*dest,*src;
 	memptr		buffer;
 
 	VW_ColorBorder (15);
@@ -166,7 +166,7 @@ void PicturePause (void)
 	for (p=0;p<4;p++)
 	{
 	   src = MK_FP(0xa000,displayofs);
-	   dest = (byte far *)buffer+p;
+	   dest = (byte *)buffer+p;
 	   VGAREADMAP(p);
 	   for (x=0;x<16000;x++,dest+=4)
 		   *dest = *src++;
@@ -177,7 +177,7 @@ void PicturePause (void)
 	for (p=0;p<4;p++)
 	{
 		src = MK_FP(0xa000,0);
-		dest = (byte far *)buffer+51200+p;
+		dest = (byte *)buffer+51200+p;
 		VGAREADMAP(p);
 		for (x=0;x<3200;x++,dest+=4)
 			*dest = *src++;
@@ -225,7 +225,7 @@ static	char	buf[10];
 	int				i,j,k,x;
 	longword		l;
 	memptr			addr;
-	PageListStruct	far *page;
+	PageListStruct	*page;
 
 	CenterWindow(20,16);
 	VW_UpdateScreen();
@@ -314,7 +314,7 @@ static	char	buf[10];
 			}
 			else
 			{
-				byte far *dp = (byte far *)MK_FP(addr,0);
+				byte *dp = (byte *)MK_FP(addr,0);
 				for (j = 0;j < NumDigi;j++)
 				{
 					k = (DigiList[(j * 2) + 1] + (PMPageSize - 1)) / PMPageSize;

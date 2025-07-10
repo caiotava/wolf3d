@@ -56,8 +56,8 @@ PUBLIC	_jabhack2
 	mov	ax,seg LDIV@
 	mov	es,ax
 	mov	ax,9090h					;Two NOP's
-	mov	[WORD FAR es:LDIV@],ax		;Patch over XOR AX,AX
-	mov	[WORD FAR es:LDIV@+2],ax	;and over JMP SHORT COMMON
+	mov	[WORD es:LDIV@],ax		;Patch over XOR AX,AX
+	mov	[WORD es:LDIV@+2],ax	;and over JMP SHORT COMMON
 
 	pop	es
 	retf
