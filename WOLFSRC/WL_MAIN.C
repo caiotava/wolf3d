@@ -1581,6 +1581,9 @@ char    *nosprtxt[] = {"nospr",nil};
 
 int main (int argc, char *argv[])
 {
+	argsCount = argc;
+	argsValues = argv;
+
 	int     i;
 
 #ifdef BETA

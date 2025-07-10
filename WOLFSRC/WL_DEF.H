@@ -5,7 +5,6 @@
 
 #include "ID_HEADS.H"
 #include <MATH.H>
-#include <VALUES.H>
 
 #include "WL_MENU.H"
 
@@ -794,6 +793,12 @@ extern	int		minheightdiv;
 
 extern	char	configname[13];
 
+
+//
+// startup arguments
+//
+extern int argsCount;
+extern char **argsValues;
 
 
 void		HelpScreens (void);

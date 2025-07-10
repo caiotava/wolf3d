@@ -7,6 +7,8 @@
 =================
 */
 
+#include "SDL2/SDL.h"
+
 void VL_MungePic (unsigned char *source, unsigned width, unsigned height)
 {
 	unsigned	x,y,plane,size,pwidth;
@@ -14,17 +16,20 @@ void VL_MungePic (unsigned char *source, unsigned width, unsigned height)
 
 	size = width*height;
 
-	if (width&3)
-		errout ("VL_MungePic: Not divisable by 4!\n");
+	if (width&3) {
+		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION,"VL_MungePic: Not divisable by 4! %d\n", width);
+	}
 
 //
 // copy the pic to a temp buffer
 //
-	temp = (unsigned char *)farmalloc (size);
-	if (!temp)
-		errout ("Non enough memory for munge buffer!\n");
+	temp = (unsigned char *)malloc (size);
+	if (!temp) {
+		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Non enough memory for munge buffer!\n");
+		exit(1);
+	}
 
-	_fmemcpy (temp,source,size);
+	memcpy(temp,source,size);
 
 //
 // munge it back into the original buffer

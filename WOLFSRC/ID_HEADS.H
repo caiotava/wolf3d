@@ -6,7 +6,6 @@
 #include <STDIO.H>
 #include <STDLIB.H>
 #include <STRING.H>
-#include <SYS\STAT.H>
 #include <SDL2/SDL.h>
 #include "filesystem.h"
 #define __ID_GLOB__
@@ -58,8 +57,6 @@ extern	char		signon;
 //	Types.h - Generic types, #defines, etc.
 //	v1.0d1
 //
-
-typedef	enum	{false,true}	bool;
 typedef	unsigned	char		byte;
 typedef	unsigned	int			word;
 typedef	unsigned	long		longword;

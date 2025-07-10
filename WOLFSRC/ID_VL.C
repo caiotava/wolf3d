@@ -1,11 +1,10 @@
 // ID_VL.C
 
-#include <dos.h>
-#include <alloc.h>
-#include <mem.h>
 #include <string.h>
 #include "ID_HEAD.H"
 #include "ID_VL.H"
+
+#include "WL_DEF.H"
 #pragma hdrstop
 
 //
@@ -25,7 +24,7 @@ unsigned	bordercolor;
 
 bool		fastpalette;				// if true, use outsb to set
 
-byte		far	palette1[256][3],palette2[256][3];
+byte		palette1[256][3],palette2[256][3];
 
 //===========================================================================
 
@@ -72,11 +71,9 @@ void	VL_Startup (void)
 {
 	int i,videocard;
 
-	asm	cld;
-
 	videocard = VL_VideoID ();
-	for (i = 1;i < _argc;i++)
-		if (US_CheckParm(_argv[i],ParmStrings) == 0)
+	for (i = 1;i < argsCount ;i++)
+		if (US_CheckParm(argsValues[i],ParmStrings) == 0)
 		{
 			videocard = 5;
 			break;
