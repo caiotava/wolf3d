@@ -71,7 +71,7 @@ void SetupScaling (int maxscaleheight)
 	for (i=1;i<MAXSCALEHEIGHT;i++)
 	{
 		if (scaledirectory[i])
-			MM_FreePtr (&(memptr)scaledirectory[i]);
+			MM_FreePtr ((memptr*)scaledirectory[i]);
 		if (i>=stepbytwo)
 			i += 2;
 	}
@@ -83,22 +83,22 @@ void SetupScaling (int maxscaleheight)
 // build the compiled scalers
 //
 	stepbytwo = viewheight/2;	// save space by double stepping
-	MM_GetPtr (&(memptr)work,20000);
+	MM_GetPtr ((memptr*)work,20000);
 	if (mmerror)
 		return;
 
 	for (i=1;i<=maxscaleheight;i++)
 	{
-		BuildCompScale (i*2,&(memptr)scaledirectory[i]);
+		BuildCompScale (i*2,(memptr*)scaledirectory[i]);
 		if (mmerror)
 		{
-			MM_FreePtr (&(memptr)work);
+			MM_FreePtr ((memptr*)work);
 			return;
 		}
 		if (i>=stepbytwo)
 			i+= 2;
 	}
-	MM_FreePtr (&(memptr)work);
+	MM_FreePtr ((memptr*)work);
 
 //
 // compact memory and lock down scalers
@@ -106,8 +106,8 @@ void SetupScaling (int maxscaleheight)
 	MM_SortMem ();
 	for (i=1;i<=maxscaleheight;i++)
 	{
-		MM_SetLock (&(memptr)scaledirectory[i],true);
-		fullscalefarcall[i] = (unsigned)scaledirectory[i];
+		MM_SetLock ((memptr*)scaledirectory[i],true);
+		fullscalefarcall[i] = (unsigned)&scaledirectory[i];
 		fullscalefarcall[i] <<=16;
 		fullscalefarcall[i] += scaledirectory[i]->codeofs[0];
 		if (i>=stepbytwo)
@@ -181,7 +181,7 @@ unsigned BuildCompScale (int height, memptr *finalspot)
 //
 // mark the start of the code
 //
-		work->codeofs[src] = FP_OFF(code);
+		work->codeofs[src] = *code;
 
 //
 // compile some code if the source pixel generates any screen pixels

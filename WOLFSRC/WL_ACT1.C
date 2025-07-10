@@ -749,8 +749,8 @@ void PushWall (int checkx, int checky, int dir)
 			SD_PlaySound (NOWAYSND);
 			return;
 		}
-		(unsigned)actorat[checkx][checky-1] =
 		tilemap[checkx][checky-1] = oldtile;
+		actorat[checkx][checky-1] = (objstruct*) &tilemap[checkx][checky-1];
 		break;
 
 	case di_east:
@@ -759,8 +759,9 @@ void PushWall (int checkx, int checky, int dir)
 			SD_PlaySound (NOWAYSND);
 			return;
 		}
-		(unsigned)actorat[checkx+1][checky] =
+
 		tilemap[checkx+1][checky] = oldtile;
+		actorat[checkx+1][checky] = (objstruct*) &tilemap[checkx+1][checky];
 		break;
 
 	case di_south:
@@ -769,8 +770,9 @@ void PushWall (int checkx, int checky, int dir)
 			SD_PlaySound (NOWAYSND);
 			return;
 		}
-		(unsigned)actorat[checkx][checky+1] =
+
 		tilemap[checkx][checky+1] = oldtile;
+		actorat[checkx][checky+1] = (objstruct*) &tilemap[checkx][checky+1];
 		break;
 
 	case di_west:
@@ -779,8 +781,9 @@ void PushWall (int checkx, int checky, int dir)
 			SD_PlaySound (NOWAYSND);
 			return;
 		}
-		(unsigned)actorat[checkx-1][checky] =
+
 		tilemap[checkx-1][checky] = oldtile;
+		actorat[checkx-1][checky] = (objstruct*) &tilemap[checkx-1][checky];
 		break;
 	}
 

@@ -30,8 +30,6 @@
 
 #pragma hdrstop		// Wierdo thing with MUSE
 
-#include <dos.h>
-
 #ifdef	_MUSE_      // Will be defined in ID_Types.h
 #include "ID_SD.h"
 #else

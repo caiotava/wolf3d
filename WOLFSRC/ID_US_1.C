@@ -80,81 +80,82 @@ static	bool		US_Started;
 int
 USL_HardError(word errval,int ax,int bp,int si)
 {
-#define IGNORE  0
-#define RETRY   1
-#define	ABORT   2
-extern	void	ShutdownId(void);
-
-static	char		buf[32];
-static	WindowRec	wr;
-		int			di;
-		char		c,*s,*t;
-
-
-	di = _DI;
-
-	if (ax < 0)
-		s = "Device Error";
-	else
-	{
-		if ((di & 0x00ff) == 0)
-			s = "Drive ~ is Write Protected";
-		else
-			s = "Error on Drive ~";
-		for (t = buf;*s;s++,t++)	// Can't use sprintf()
-			if ((*t = *s) == '~')
-				*t = (ax & 0x00ff) + 'A';
-		*t = '\0';
-		s = buf;
-	}
-
-	c = peekb(0x40,0x49);	// Get the current screen mode
-	if ((c < 4) || (c == 7))
-		goto oh_kill_me;
-
-	// DEBUG - handle screen cleanup
-
-	US_SaveWindow(&wr);
-	US_CenterWindow(30,3);
-	US_CPrint(s);
-	US_CPrint("(R)etry or (A)bort?");
-	VW_UpdateScreen();
-	IN_ClearKeysDown();
-
-asm	sti	// Let the keyboard interrupts come through
-
-	while (true)
-	{
-		switch (IN_WaitForASCII())
-		{
-		case key_Escape:
-		case 'a':
-		case 'A':
-			goto oh_kill_me;
-			break;
-		case key_Return:
-		case key_Space:
-		case 'r':
-		case 'R':
-			US_ClearWindow();
-			VW_UpdateScreen();
-			US_RestoreWindow(&wr);
-			return(RETRY);
-			break;
-		}
-	}
-
-oh_kill_me:
-	abortprogram = s;
-	ShutdownId();
-	fprintf(stderr,"Terminal Error: %s\n",s);
-	if (tedlevel)
-		fprintf(stderr,"You launched from TED. I suggest that you reboot...\n");
-
-	return(ABORT);
-#undef	IGNORE
-#undef	RETRY
-#undef	ABORT
+// #define IGNORE  0
+// #define RETRY   1
+// #define	ABORT   2
+// extern	void	ShutdownId(void);
+//
+// static	char		buf[32];
+// static	WindowRec	wr;
+// 		int			di;
+// 		char		c,*s,*t;
+//
+//
+// 	di = _DI;
+//
+// 	if (ax < 0)
+// 		s = "Device Error";
+// 	else
+// 	{
+// 		if ((di & 0x00ff) == 0)
+// 			s = "Drive ~ is Write Protected";
+// 		else
+// 			s = "Error on Drive ~";
+// 		for (t = buf;*s;s++,t++)	// Can't use sprintf()
+// 			if ((*t = *s) == '~')
+// 				*t = (ax & 0x00ff) + 'A';
+// 		*t = '\0';
+// 		s = buf;
+// 	}
+//
+// 	c = peekb(0x40,0x49);	// Get the current screen mode
+// 	if ((c < 4) || (c == 7))
+// 		goto oh_kill_me;
+//
+// 	// DEBUG - handle screen cleanup
+//
+// 	US_SaveWindow(&wr);
+// 	US_CenterWindow(30,3);
+// 	US_CPrint(s);
+// 	US_CPrint("(R)etry or (A)bort?");
+// 	VW_UpdateScreen();
+// 	IN_ClearKeysDown();
+//
+// asm	sti	// Let the keyboard interrupts come through
+//
+// 	while (true)
+// 	{
+// 		switch (IN_WaitForASCII())
+// 		{
+// 		case key_Escape:
+// 		case 'a':
+// 		case 'A':
+// 			goto oh_kill_me;
+// 			break;
+// 		case key_Return:
+// 		case key_Space:
+// 		case 'r':
+// 		case 'R':
+// 			US_ClearWindow();
+// 			VW_UpdateScreen();
+// 			US_RestoreWindow(&wr);
+// 			return(RETRY);
+// 			break;
+// 		}
+// 	}
+//
+// oh_kill_me:
+// 	abortprogram = s;
+// 	ShutdownId();
+// 	fprintf(stderr,"Terminal Error: %s\n",s);
+// 	if (tedlevel)
+// 		fprintf(stderr,"You launched from TED. I suggest that you reboot...\n");
+//
+// 	return(ABORT);
+// #undef	IGNORE
+// #undef	RETRY
+// #undef	ABORT
+	return 1;
 }
 #pragma	warn	+par
 #pragma	warn	+rch

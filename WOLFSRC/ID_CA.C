@@ -114,8 +114,8 @@ huffnode	audiohuffman[255];
 
 
 PHYSFS_File *grhandle;		// handle to EGAGRAPH
-int			maphandle;		// handle to MAPTEMP / GAMEMAPS
-int			audiohandle;	// handle to AUDIOT / AUDIO
+PHYSFS_File	*maphandle;		// handle to MAPTEMP / GAMEMAPS
+PHYSFS_File	*audiohandle;	// handle to AUDIOT / AUDIO
 
 long		chunkcomplen,chunkexplen;
 
@@ -674,7 +674,7 @@ void CAL_SetupGrFile (void)
 //
 // load the pic and sprite headers into the arrays in the data segment
 //
-	MM_GetPtr(&(memptr)pictable,NUMPICS*sizeof(pictabletype));
+	MM_GetPtr((memptr*)pictable,NUMPICS*sizeof(pictabletype));
 	CAL_GetGrChunkLength(STRUCTPIC);		// position file pointer
 	MM_GetPtr(&compseg,chunkcomplen);
 	CA_FarRead (grhandle,compseg,chunkcomplen);
@@ -696,7 +696,6 @@ void CAL_SetupGrFile (void)
 void CAL_SetupMapFile (void)
 {
 	int	i;
-	int handle;
 	long length,pos;
 	char fname[13];
 
@@ -707,14 +706,14 @@ void CAL_SetupMapFile (void)
 	strcpy(fname,mheadname);
 	strcat(fname,extension);
 
-	if ((handle = open(fname,
-		 O_RDONLY | O_BINARY, S_IREAD)) == -1)
+	PHYSFS_File *handle = PHYSFS_openRead(fname);
+	if (handle == NULL)
 		CA_CannotOpen(fname);
 
-	length = filelength(handle);
-	MM_GetPtr (&(memptr)tinf,length);
+	length = PHYSFS_fileLength(handle);
+	MM_GetPtr ((memptr*)tinf,length);
 	CA_FarRead(handle, tinf, length);
-	close(handle);
+	PHYSFS_close(handle);
 #else
 
 	tinf = (byte*)FP_SEG(&maphead);
@@ -728,15 +727,15 @@ void CAL_SetupMapFile (void)
 	strcpy(fname,"GAMEMAPS.");
 	strcat(fname,extension);
 
-	if ((maphandle = open(fname,
-		 O_RDONLY | O_BINARY, S_IREAD)) == -1)
+	maphandle = PHYSFS_openRead(fname);
+	if (maphandle == NULL)
 		CA_CannotOpen(fname);
 #else
 	strcpy(fname,mfilename);
 	strcat(fname,extension);
 
-	if ((maphandle = open(fname,
-		 O_RDONLY | O_BINARY, S_IREAD)) == -1)
+	maphandle = PHYSFS_openRead(fname);
+	if (maphandle == NULL)
 		CA_CannotOpen(fname);
 #endif
 
@@ -749,9 +748,9 @@ void CAL_SetupMapFile (void)
 		if (pos<0)						// $FFFFFFFF start is a sparse map
 			continue;
 
-		MM_GetPtr(&(memptr)mapheaderseg[i],sizeof(maptype));
-		MM_SetLock(&(memptr)mapheaderseg[i],true);
-		lseek(maphandle,pos,SEEK_SET);
+		MM_GetPtr((memptr*)mapheaderseg[i],sizeof(maptype));
+		MM_SetLock((memptr*)mapheaderseg[i],true);
+		PHYSFS_seek(maphandle, pos);
 		CA_FarRead (maphandle,(memptr)mapheaderseg[i],sizeof(maptype));
 	}
 
@@ -760,8 +759,8 @@ void CAL_SetupMapFile (void)
 //
 	for (i=0;i<MAPPLANES;i++)
 	{
-		MM_GetPtr (&(memptr)mapsegs[i],64*64*2);
-		MM_SetLock (&(memptr)mapsegs[i],true);
+		MM_GetPtr ((memptr*)mapsegs[i],64*64*2);
+		MM_SetLock ((memptr*)mapsegs[i],true);
 	}
 }
 
@@ -779,7 +778,6 @@ void CAL_SetupMapFile (void)
 
 void CAL_SetupAudioFile (void)
 {
-	int handle;
 	long length;
 	char fname[13];
 
@@ -790,14 +788,14 @@ void CAL_SetupAudioFile (void)
 	strcpy(fname,aheadname);
 	strcat(fname,extension);
 
-	if ((handle = open(fname,
-		 O_RDONLY | O_BINARY, S_IREAD)) == -1)
+	PHYSFS_File *handle = PHYSFS_openRead(fname);
+	if (handle == NULL)
 		CA_CannotOpen(fname);
 
-	length = filelength(handle);
-	MM_GetPtr (&(memptr)audiostarts,length);
+	length = PHYSFS_fileLength(handle);
+	MM_GetPtr ((memptr*)audiostarts,length);
 	CA_FarRead(handle, (byte *)audiostarts, length);
-	close(handle);
+	PHYSFS_close(handle);
 #else
 	audiohuffman = (huffnode *)&audiodict;
 	CAL_OptimizeNodes (audiohuffman);
@@ -811,12 +809,11 @@ void CAL_SetupAudioFile (void)
 	strcpy(fname,afilename);
 	strcat(fname,extension);
 
-	if ((audiohandle = open(fname,
-		 O_RDONLY | O_BINARY, S_IREAD)) == -1)
+	PHYSFS_File *audioHandle = PHYSFS_openRead(fname);
+	if (audioHandle == NULL)
 		CA_CannotOpen(fname);
 #else
-	if ((audiohandle = open("AUDIO."EXTENSION,
-		 O_RDONLY | O_BINARY, S_IREAD)) == -1)
+	if (audioHandle = PHYSFS_openRead(fname) == NULL)
 		Quit ("Can't open AUDIO."EXTENSION"!");
 #endif
 }
@@ -870,9 +867,9 @@ void CA_Shutdown (void)
 	close (profilehandle);
 #endif
 
-	close (maphandle);
+	PHYSFS_close (maphandle);
 	PHYSFS_close(grhandle);
-	close (audiohandle);
+	PHYSFS_close (audiohandle);
 }
 
 //===========================================================================
@@ -896,7 +893,7 @@ void CA_CacheAudioChunk (int chunk)
 
 	if (audiosegs[chunk])
 	{
-		MM_SetPurge (&(memptr)audiosegs[chunk],0);
+		MM_SetPurge ((memptr*)audiosegs[chunk],0);
 		return;							// allready in memory
 	}
 
@@ -907,11 +904,11 @@ void CA_CacheAudioChunk (int chunk)
 	pos = audiostarts[chunk];
 	compressed = audiostarts[chunk+1]-pos;
 
-	lseek(audiohandle,pos,SEEK_SET);
+	PHYSFS_seek(audiohandle, pos);
 
 #ifndef AUDIOHEADERLINKED
 
-	MM_GetPtr (&(memptr)audiosegs[chunk],compressed);
+	MM_GetPtr ((memptr*)audiosegs[chunk],compressed);
 	if (mmerror)
 		return;
 
@@ -977,7 +974,7 @@ void CA_LoadAllSounds (void)
 
 	for (i=0;i<NUMSOUNDS;i++,start++)
 		if (audiosegs[start])
-			MM_SetPurge (&(memptr)audiosegs[start],3);		// make purgable
+			MM_SetPurge ((memptr*)audiosegs[start],3);		// make purgable
 
 cachein:
 
@@ -1162,7 +1159,7 @@ void CA_CacheScreen (int chunk)
 // allocate final space, decompress it, and free bigbuffer
 // Sprites need to have shifts made and various other junk
 //
-	CAL_HuffExpand (source,MK_FP(SCREENSEG,bufferofs),expanded,grhuffman,true);
+	CAL_HuffExpand (source,(byte*)bufferofs,expanded,grhuffman,true);
 	VW_MarkUpdateBlock (0,0,319,199);
 	MM_FreePtr(&bigbufferseg);
 }
@@ -1203,9 +1200,9 @@ void CA_CacheMap (int mapnum)
 		pos = mapheaderseg[mapnum]->planestart[plane];
 		compressed = mapheaderseg[mapnum]->planelength[plane];
 
-		dest = &(memptr)mapsegs[plane];
+		dest = (memptr*)mapsegs[plane];
 
-		lseek(maphandle,pos,SEEK_SET);
+		PHYSFS_seek(maphandle, pos);
 		if (compressed<=BUFFERSIZE)
 			source = bufferseg;
 		else
@@ -1266,7 +1263,7 @@ void CA_UpLevel (void)
 
 	for (i=0;i<NUMCHUNKS;i++)
 		if (grsegs[i])
-			MM_SetPurge (&(memptr)grsegs[i],3);
+			MM_SetPurge ((memptr*)grsegs[i],3);
 	ca_levelbit<<=1;
 	ca_levelnum++;
 }
@@ -1328,7 +1325,7 @@ void CA_ClearMarks (void)
 
 void CA_ClearAllMarks (void)
 {
-	_fmemset (grneeded,0,sizeof(grneeded));
+	memset(grneeded,0,sizeof(grneeded));
 	ca_levelbit = 1;
 	ca_levelnum = 0;
 }
@@ -1357,7 +1354,7 @@ void CA_SetGrPurge (void)
 
 	for (i=0;i<NUMCHUNKS;i++)
 		if (grsegs[i])
-			MM_SetPurge (&(memptr)grsegs[i],3);
+			MM_SetPurge ((memptr*)grsegs[i],3);
 }
 
 
@@ -1382,7 +1379,7 @@ void CA_SetAllPurge (void)
 //
 	for (i=0;i<NUMSNDCHUNKS;i++)
 		if (audiosegs[i])
-			MM_SetPurge (&(memptr)audiosegs[i],3);
+			MM_SetPurge ((memptr*)audiosegs[i],3);
 
 //
 // free graphics
