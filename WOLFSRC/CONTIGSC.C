@@ -81,9 +81,9 @@ long SetupScaling (int maxscaleheight)
 
 	for (i=1;i<=maxscaleheight;i++)
 	{
-		seg = FP_SEG(dest);
-		ofs = (FP_OFF(dest)+15)&~15;
-		dest = MK_FP(seg+ofs/16,0);
+		uintptr_t ptr = (uintptr_t)dest;
+		ptr = (ptr + 15) & ~15;       // align to next 16-byte boundary
+		dest = (byte *)ptr;
 
 		scaledirectory[i] = (t_compscale *)dest;
 		size = BuildCompScale (i*2,dest);
@@ -120,9 +120,9 @@ long SetupScaling (int maxscaleheight)
 	for (i=maxscaleheight;i<MAXSCALEHEIGHT;i++)
 		fullscalefarcall[i] = (long)BadScale;
 
-	seg = FP_SEG(dest);
-	ofs = (FP_OFF(dest)+15)&~15;
-	endscalermemory = (void*)(seg+ofs/16);
+	uintptr_t ptr = (uintptr_t)dest;
+	ptr = (ptr + 15) & ~15;       // align to next 16-byte boundary
+	endscalermemory = (byte *)ptr;
 	size = (byte*)dest-(byte*)scalermemory;
 	freescalermemory = MAXSCALERMEMORY-16-size;
 
