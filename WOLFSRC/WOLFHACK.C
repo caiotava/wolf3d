@@ -9,7 +9,7 @@ int		spanstart[MAXVIEWHEIGHT/2];
 fixed	stepscale[MAXVIEWHEIGHT/2];
 fixed	basedist[MAXVIEWHEIGHT/2];
 
-extern	char planepics[8192];	// 4k of ceiling, 4k of floor
+char planepics[8192];	// 4k of ceiling, 4k of floor
 
 int		halfheight = 0;
 
@@ -68,17 +68,17 @@ void DrawSpans (int x1, int x2, int height)
 	prestep = viewwidth/2 - x1;
 	do
 	{
-		outportb (SC_INDEX+1,1<<plane);
+		// outportb (SC_INDEX+1,1<<plane);
 		mr_xfrac = startxfrac - (mr_xstep>>2)*prestep;
 		mr_yfrac = startyfrac - (mr_ystep>>2)*prestep;
 
 		startx = x1>>2;
-		mr_dest = (unsigned)toprow + startx;
+		mr_dest = (unsigned long)toprow + startx;
 		mr_count = ((x2-plane)>>2) - startx + 1;
 		x1++;
 		prestep--;
-		if (mr_count)
-			MapRow ();
+		// if (mr_count)
+		// 	MapRow ();
 		plane = (plane+1)&3;
 	} while (plane != startplane);
 
@@ -113,15 +113,15 @@ void SetPlaneViewSize (void)
 			basedist[y] = GLOBAL1/2*scale/y;
 	}
 
-	src = PM_GetPage(0);
-	dest = planepics;
+	src = (byte*)PM_GetPage(0);
+	dest = (byte*)planepics;
 	for (x=0 ; x<4096 ; x++)
 	{
 		*dest = *src++;
 		dest += 2;
 	}
-	src = PM_GetPage(1);
-	dest = planepics+1;
+	src = (byte*)PM_GetPage(1);
+	dest = (byte*)planepics+1;
 	for (x=0 ; x<4096 ; x++)
 	{
 		*dest = *src++;

@@ -8,6 +8,8 @@
 #ifndef	__ID_US__
 #define	__ID_US__
 
+#include "ID_HEAD.H"
+
 #ifdef	__DEBUG__
 #define	__DEBUG_UserMgr__
 #endif
@@ -85,10 +87,11 @@ extern	HighScore	Scores[];
 
 #define	US_HomeWindow()	{PrintX = WindowX; PrintY = WindowY;}
 
+extern	void US_InitRndT(bool randomize);
+
 extern	void	US_Startup(void),
 				US_Setup(void),
 				US_Shutdown(void),
-				US_InitRndT(bool randomize),
 				US_SetLoadSaveHooks(bool (*load)(int),
 									bool (*save)(int),
 									void (*reset)(void)),
@@ -115,9 +118,9 @@ extern	void	US_Startup(void),
 extern	bool	US_UpdateCursor(void),
 				US_LineInput(int x,int y,char *buf,char *def,bool escok,
 								int maxchars,int maxwidth);
-extern	int		US_CheckParm(char *parm,char **strings),
-				US_RndT(void);
 
+extern	int		US_CheckParm(char *parm,char **strings);
+extern	int		US_RndT(void);
 		void	USL_PrintInCenter(char *s,Rect r);
 		char 	*USL_GiveSaveName(word game);
 #endif

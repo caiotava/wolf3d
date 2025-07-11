@@ -59,7 +59,7 @@ void BadScale (void)
 ==========================
 */
 
-long SetupScaling (int maxscaleheight)
+void SetupScaling (int maxscaleheight)
 {
 	int		i,x,y;
 	byte	*dest;
@@ -126,7 +126,7 @@ long SetupScaling (int maxscaleheight)
 	size = (byte*)dest-(byte*)scalermemory;
 	freescalermemory = MAXSCALERMEMORY-16-size;
 
-	return size;
+	// return size;
 }
 
 //===========================================================================
@@ -435,8 +435,8 @@ void ScaleShape (int xcenter, int shapenum, unsigned height)
 		return;								// too close or far away
 	comptable = scaledirectory[scale];
 
-	*(((unsigned *)&linescale)+1)=FP_SEG(comptable);	// seg of far call
-	*(((unsigned *)&linecmds)+1)=(unsigned)shape;		// seg of shape
+	*(((unsigned *)&linescale)+1)= (unsigned long)&comptable;	// seg of far call
+	*(((unsigned *)&linecmds)+1)=(unsigned long)shape;		// seg of shape
 
 //
 // scale to the left (from pixel 31 to shape->leftpix)
@@ -448,7 +448,7 @@ void ScaleShape (int xcenter, int shapenum, unsigned height)
 
 	while ( --srcx >=stopx && slinex>0)
 	{
-		(unsigned)linecmds = *cmdptr--;
+		linecmds = cmdptr--;
 		if ( !(slinewidth = comptable->width[srcx]) )
 			continue;
 
@@ -531,7 +531,7 @@ void ScaleShape (int xcenter, int shapenum, unsigned height)
 
 	while ( ++srcx <= stopx && (slinex+=slinewidth)<viewwidth)
 	{
-		(unsigned)linecmds = *cmdptr++;
+		*linecmds = *cmdptr++;
 		if ( !(slinewidth = comptable->width[srcx]) )
 			continue;
 
@@ -632,13 +632,13 @@ void SimpleScaleShape (int xcenter, int shapenum, unsigned height)
 	bool		leftvis,rightvis;
 
 
-	shape = PM_GetSpritePage (shapenum);
+	shape = (t_compshape*) PM_GetSpritePage (shapenum);
 
 	scale = height>>1;
 	comptable = scaledirectory[scale];
 
-	*(((unsigned *)&linescale)+1)=FP_SEG(comptable);	// seg of far call
-	*(((unsigned *)&linecmds)+1)=(unsigned)shape;		// seg of shape
+	*(((unsigned *)&linescale)+1)= (unsigned long) &comptable;	// seg of far call
+	*(((unsigned *)&linecmds)+1)=(unsigned long)shape;		// seg of shape
 
 //
 // scale to the left (from pixel 31 to shape->leftpix)
@@ -650,7 +650,7 @@ void SimpleScaleShape (int xcenter, int shapenum, unsigned height)
 
 	while ( --srcx >=stopx )
 	{
-		(unsigned)linecmds = *cmdptr--;
+		*linecmds = *cmdptr--;
 		if ( !(slinewidth = comptable->width[srcx]) )
 			continue;
 
@@ -678,7 +678,7 @@ void SimpleScaleShape (int xcenter, int shapenum, unsigned height)
 
 	while ( ++srcx <= stopx )
 	{
-		(unsigned)linecmds = *cmdptr++;
+		*linecmds = *cmdptr++;
 		if ( !(slinewidth = comptable->width[srcx]) )
 			continue;
 

@@ -487,13 +487,13 @@ void PageLayout (bool shownumber)
 		px = 208;
 		#else
 		strcpy (str,"pg ");
-		itoa (pagenum,str2,10);
+		snprintf(str2, sizeof(str2), "%d", pagenum);
 		strcat (str,str2);
 		strcat (str," of ");
 		py = 183;
 		px = 213;
 		#endif
-		itoa (numpages,str2,10);
+		snprintf(str2,sizeof(str2), "%d", numpages);
 		strcat (str,str2);
 		fontcolor = 0x4f; 			   //12^BACKCOLOR;
 
@@ -787,7 +787,7 @@ void HelpScreens (void)
 
 	VW_FadeOut();
 
-	FreeMusic ();
+	// FreeMusic ();
 	CA_DownLevel ();
 	MM_SortMem ();
 #endif
@@ -849,10 +849,10 @@ void EndText (void)
 	VW_FadeOut();
 	SETFONTCOLOR(0,15);
 	IN_ClearKeysDown();
-	if (MousePresent)
-		Mouse(MDelta);	// Clear accumulated mouse movement
-
-	FreeMusic ();
+	// if (MousePresent)
+	// 	Mouse(MDelta);	// Clear accumulated mouse movement
+	//
+	// FreeMusic ();
 	CA_DownLevel ();
 	MM_SortMem ();
 #endif

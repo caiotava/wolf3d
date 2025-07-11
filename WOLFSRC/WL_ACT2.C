@@ -235,20 +235,20 @@ void A_Smoke (objtype *ob)
 	GetNewActor ();
 #ifdef SPEAR
 	if (ob->obclass == hrocketobj)
-		new->state = &s_hsmoke1;
+		newObj->state = &s_hsmoke1;
 	else
 #endif
-		new->state = &s_smoke1;
-	new->ticcount = 6;
+	newObj->state = &s_smoke1;
+	newObj->ticcount = 6;
 
-	new->tilex = ob->tilex;
-	new->tiley = ob->tiley;
-	new->x = ob->x;
-	new->y = ob->y;
-	new->obclass = inertobj;
-	new->active = true;
+	newObj->tilex = ob->tilex;
+	newObj->tiley = ob->tiley;
+	newObj->x = ob->x;
+	newObj->y = ob->y;
+	newObj->obclass = inertobj;
+	newObj->active = ac_yes;
 
-	new->flags = FL_NEVERMARK;
+	newObj->flags = FL_NEVERMARK;
 }
 
 
@@ -424,8 +424,8 @@ statetype s_grdpath3 	= {true,SPR_GRD_W3_1,20,T_Path,NULL,&s_grdpath3s};
 statetype s_grdpath3s 	= {true,SPR_GRD_W3_1,5,NULL,NULL,&s_grdpath4};
 statetype s_grdpath4 	= {true,SPR_GRD_W4_1,15,T_Path,NULL,&s_grdpath1};
 
-statetype s_grdpain 	= {2,SPR_GRD_PAIN_1,10,NULL,NULL,&s_grdchase1};
-statetype s_grdpain1 	= {2,SPR_GRD_PAIN_2,10,NULL,NULL,&s_grdchase1};
+statetype s_grdpain 	= {true,SPR_GRD_PAIN_1,10,NULL,NULL,&s_grdchase1};
+statetype s_grdpain1 	= {true,SPR_GRD_PAIN_2,10,NULL,NULL,&s_grdchase1};
 
 statetype s_grdshoot1 	= {false,SPR_GRD_SHOOT1,20,NULL,NULL,&s_grdshoot2};
 statetype s_grdshoot2 	= {false,SPR_GRD_SHOOT2,20,NULL,T_Shoot,&s_grdshoot3};
@@ -571,8 +571,8 @@ statetype s_ofcpath3 	= {true,SPR_OFC_W3_1,20,T_Path,NULL,&s_ofcpath3s};
 statetype s_ofcpath3s 	= {true,SPR_OFC_W3_1,5,NULL,NULL,&s_ofcpath4};
 statetype s_ofcpath4 	= {true,SPR_OFC_W4_1,15,T_Path,NULL,&s_ofcpath1};
 
-statetype s_ofcpain 	= {2,SPR_OFC_PAIN_1,10,NULL,NULL,&s_ofcchase1};
-statetype s_ofcpain1 	= {2,SPR_OFC_PAIN_2,10,NULL,NULL,&s_ofcchase1};
+statetype s_ofcpain 	= {true,SPR_OFC_PAIN_1,10,NULL,NULL,&s_ofcchase1};
+statetype s_ofcpain1 	= {true,SPR_OFC_PAIN_2,10,NULL,NULL,&s_ofcchase1};
 
 statetype s_ofcshoot1 	= {false,SPR_OFC_SHOOT1,6,NULL,NULL,&s_ofcshoot2};
 statetype s_ofcshoot2 	= {false,SPR_OFC_SHOOT2,20,NULL,T_Shoot,&s_ofcshoot3};
@@ -637,8 +637,8 @@ statetype s_mutpath3 	= {true,SPR_MUT_W3_1,20,T_Path,NULL,&s_mutpath3s};
 statetype s_mutpath3s 	= {true,SPR_MUT_W3_1,5,NULL,NULL,&s_mutpath4};
 statetype s_mutpath4 	= {true,SPR_MUT_W4_1,15,T_Path,NULL,&s_mutpath1};
 
-statetype s_mutpain 	= {2,SPR_MUT_PAIN_1,10,NULL,NULL,&s_mutchase1};
-statetype s_mutpain1 	= {2,SPR_MUT_PAIN_2,10,NULL,NULL,&s_mutchase1};
+statetype s_mutpain 	= {true,SPR_MUT_PAIN_1,10,NULL,NULL,&s_mutchase1};
+statetype s_mutpain1 	= {true,SPR_MUT_PAIN_2,10,NULL,NULL,&s_mutchase1};
 
 statetype s_mutshoot1 	= {false,SPR_MUT_SHOOT1,6,NULL,T_Shoot,&s_mutshoot2};
 statetype s_mutshoot2 	= {false,SPR_MUT_SHOOT2,20,NULL,NULL,&s_mutshoot3};
@@ -706,8 +706,8 @@ statetype s_sspath3 	= {true,SPR_SS_W3_1,20,T_Path,NULL,&s_sspath3s};
 statetype s_sspath3s 	= {true,SPR_SS_W3_1,5,NULL,NULL,&s_sspath4};
 statetype s_sspath4 	= {true,SPR_SS_W4_1,15,T_Path,NULL,&s_sspath1};
 
-statetype s_sspain 		= {2,SPR_SS_PAIN_1,10,NULL,NULL,&s_sschase1};
-statetype s_sspain1 	= {2,SPR_SS_PAIN_2,10,NULL,NULL,&s_sschase1};
+statetype s_sspain 		= {true,SPR_SS_PAIN_1,10,NULL,NULL,&s_sschase1};
+statetype s_sspain1 	= {true,SPR_SS_PAIN_2,10,NULL,NULL,&s_sschase1};
 
 statetype s_ssshoot1 	= {false,SPR_SS_SHOOT1,20,NULL,NULL,&s_ssshoot2};
 statetype s_ssshoot2 	= {false,SPR_SS_SHOOT2,20,NULL,T_Shoot,&s_ssshoot3};
@@ -852,28 +852,28 @@ void SpawnStand (enemy_t which, int tilex, int tiley, int dir)
 	{
 	case en_guard:
 		SpawnNewObj (tilex,tiley,&s_grdstand);
-		new->speed = SPDPATROL;
+		newObj->speed = SPDPATROL;
 		if (!loadedgame)
 		  gamestate.killtotal++;
 		break;
 
 	case en_officer:
 		SpawnNewObj (tilex,tiley,&s_ofcstand);
-		new->speed = SPDPATROL;
+		newObj->speed = SPDPATROL;
 		if (!loadedgame)
 		  gamestate.killtotal++;
 		break;
 
 	case en_mutant:
 		SpawnNewObj (tilex,tiley,&s_mutstand);
-		new->speed = SPDPATROL;
+		newObj->speed = SPDPATROL;
 		if (!loadedgame)
 		  gamestate.killtotal++;
 		break;
 
 	case en_ss:
 		SpawnNewObj (tilex,tiley,&s_ssstand);
-		new->speed = SPDPATROL;
+		newObj->speed = SPDPATROL;
 		if (!loadedgame)
 		  gamestate.killtotal++;
 		break;
@@ -895,15 +895,15 @@ void SpawnStand (enemy_t which, int tilex, int tiley, int dir)
 			tile = *(map-1);
 
 		*map = tile;
-		new->areanumber = tile-AREATILE;
+		newObj->areanumber = tile-AREATILE;
 
-		new->flags |= FL_AMBUSH;
+		newObj->flags |= FL_AMBUSH;
 	}
 
-	new->obclass = guardobj+which;
-	new->hitpoints = starthitpoints[gamestate.difficulty][which];
-	new->dir = dir*2;
-	new->flags |= FL_SHOOTABLE;
+	newObj->obclass = (classtype) (guardobj+which);
+	newObj->hitpoints = starthitpoints[gamestate.difficulty][which];
+	newObj->dir = (dirtype)(dir*2);
+	newObj->flags |= FL_SHOOTABLE;
 }
 
 
@@ -919,7 +919,7 @@ void SpawnStand (enemy_t which, int tilex, int tiley, int dir)
 void SpawnDeadGuard (int tilex, int tiley)
 {
 	SpawnNewObj (tilex,tiley,&s_grddie4);
-	new->obclass = inertobj;
+	newObj->obclass = inertobj;
 }
 
 
@@ -938,12 +938,12 @@ void SpawnBoss (int tilex, int tiley)
 	unsigned	*map,tile;
 
 	SpawnNewObj (tilex,tiley,&s_bossstand);
-	new->speed = SPDPATROL;
+	newObj->speed = SPDPATROL;
 
-	new->obclass = bossobj;
-	new->hitpoints = starthitpoints[gamestate.difficulty][en_boss];
-	new->dir = south;
-	new->flags |= FL_SHOOTABLE|FL_AMBUSH;
+	newObj->obclass = bossobj;
+	newObj->hitpoints = starthitpoints[gamestate.difficulty][en_boss];
+	newObj->dir = south;
+	newObj->flags |= FL_SHOOTABLE|FL_AMBUSH;
 	if (!loadedgame)
 	  gamestate.killtotal++;
 }
@@ -961,12 +961,12 @@ void SpawnGretel (int tilex, int tiley)
 	unsigned	*map,tile;
 
 	SpawnNewObj (tilex,tiley,&s_gretelstand);
-	new->speed = SPDPATROL;
+	newObj->speed = SPDPATROL;
 
-	new->obclass = gretelobj;
-	new->hitpoints = starthitpoints[gamestate.difficulty][en_gretel];
-	new->dir = north;
-	new->flags |= FL_SHOOTABLE|FL_AMBUSH;
+	newObj->obclass = gretelobj;
+	newObj->hitpoints = starthitpoints[gamestate.difficulty][en_gretel];
+	newObj->dir = north;
+	newObj->flags |= FL_SHOOTABLE|FL_AMBUSH;
 	if (!loadedgame)
 	  gamestate.killtotal++;
 }
@@ -986,66 +986,66 @@ void SpawnPatrol (enemy_t which, int tilex, int tiley, int dir)
 	{
 	case en_guard:
 		SpawnNewObj (tilex,tiley,&s_grdpath1);
-		new->speed = SPDPATROL;
+		newObj->speed = SPDPATROL;
 		if (!loadedgame)
 		  gamestate.killtotal++;
 		break;
 
 	case en_officer:
 		SpawnNewObj (tilex,tiley,&s_ofcpath1);
-		new->speed = SPDPATROL;
+		newObj->speed = SPDPATROL;
 		if (!loadedgame)
 		  gamestate.killtotal++;
 		break;
 
 	case en_ss:
 		SpawnNewObj (tilex,tiley,&s_sspath1);
-		new->speed = SPDPATROL;
+		newObj->speed = SPDPATROL;
 		if (!loadedgame)
 		  gamestate.killtotal++;
 		break;
 
 	case en_mutant:
 		SpawnNewObj (tilex,tiley,&s_mutpath1);
-		new->speed = SPDPATROL;
+		newObj->speed = SPDPATROL;
 		if (!loadedgame)
 		  gamestate.killtotal++;
 		break;
 
 	case en_dog:
 		SpawnNewObj (tilex,tiley,&s_dogpath1);
-		new->speed = SPDDOG;
+		newObj->speed = SPDDOG;
 		if (!loadedgame)
 		  gamestate.killtotal++;
 		break;
 	}
 
-	new->obclass = guardobj+which;
-	new->dir = dir*2;
-	new->hitpoints = starthitpoints[gamestate.difficulty][which];
-	new->distance = tileglobal;
-	new->flags |= FL_SHOOTABLE;
-	new->active = true;
+	newObj->obclass = (classtype)(guardobj+which);
+	newObj->dir = (dirtype)(dir*2);
+	newObj->hitpoints = starthitpoints[gamestate.difficulty][which];
+	newObj->distance = tileglobal;
+	newObj->flags |= FL_SHOOTABLE;
+	newObj->active = ac_yes;
 
-	actorat[new->tilex][new->tiley] = NULL;		// don't use original spot
+	actorat[newObj->tilex][newObj->tiley] = NULL;		// don't use original spot
 
 	switch (dir)
 	{
 	case 0:
-		new->tilex++;
+		newObj->tilex++;
 		break;
 	case 1:
-		new->tiley--;
+		newObj->tiley--;
 		break;
 	case 2:
-		new->tilex--;
+		newObj->tilex--;
 		break;
 	case 3:
-		new->tiley++;
+		newObj->tiley++;
 		break;
 	}
 
-	actorat[new->tilex][new->tiley] = new;
+	actorat[newObj->tilex][newObj->tiley] = newObj;
 }
 
 
@@ -1251,9 +1251,9 @@ void SpawnTrans (int tilex, int tiley)
 		s_transdie01.tictime = 105;
 
 	SpawnNewObj (tilex,tiley,&s_transstand);
-	new->obclass = transobj;
-	new->hitpoints = starthitpoints[gamestate.difficulty][en_trans];
-	new->flags |= FL_SHOOTABLE|FL_AMBUSH;
+	newObj->obclass = transobj;
+	newObj->hitpoints = starthitpoints[gamestate.difficulty][en_trans];
+	newObj->flags |= FL_SHOOTABLE|FL_AMBUSH;
 	if (!loadedgame)
 	  gamestate.killtotal++;
 }
@@ -1332,9 +1332,9 @@ void SpawnUber (int tilex, int tiley)
 		s_uberdie01.tictime = 70;
 
 	SpawnNewObj (tilex,tiley,&s_uberstand);
-	new->obclass = uberobj;
-	new->hitpoints = starthitpoints[gamestate.difficulty][en_uber];
-	new->flags |= FL_SHOOTABLE|FL_AMBUSH;
+	newObj->obclass = uberobj;
+	newObj->hitpoints = starthitpoints[gamestate.difficulty][en_uber];
+	newObj->flags |= FL_SHOOTABLE|FL_AMBUSH;
 	if (!loadedgame)
 	  gamestate.killtotal++;
 }
@@ -1431,9 +1431,9 @@ void SpawnWill (int tilex, int tiley)
 		s_willdie2.tictime = 70;
 
 	SpawnNewObj (tilex,tiley,&s_willstand);
-	new->obclass = willobj;
-	new->hitpoints = starthitpoints[gamestate.difficulty][en_will];
-	new->flags |= FL_SHOOTABLE|FL_AMBUSH;
+	newObj->obclass = willobj;
+	newObj->hitpoints = starthitpoints[gamestate.difficulty][en_will];
+	newObj->flags |= FL_SHOOTABLE|FL_AMBUSH;
 	if (!loadedgame)
 	  gamestate.killtotal++;
 }
@@ -1606,9 +1606,9 @@ void SpawnDeath (int tilex, int tiley)
 		s_deathdie2.tictime = 105;
 
 	SpawnNewObj (tilex,tiley,&s_deathstand);
-	new->obclass = deathobj;
-	new->hitpoints = starthitpoints[gamestate.difficulty][en_death];
-	new->flags |= FL_SHOOTABLE|FL_AMBUSH;
+	newObj->obclass = deathobj;
+	newObj->hitpoints = starthitpoints[gamestate.difficulty][en_death];
+	newObj->flags |= FL_SHOOTABLE|FL_AMBUSH;
 	if (!loadedgame)
 	  gamestate.killtotal++;
 }
@@ -1651,35 +1651,35 @@ void T_Launch (objtype *ob)
 	}
 
 	GetNewActor ();
-	new->state = &s_rocket;
-	new->ticcount = 1;
+	newObj->state = &s_rocket;
+	newObj->ticcount = 1;
 
-	new->tilex = ob->tilex;
-	new->tiley = ob->tiley;
-	new->x = ob->x;
-	new->y = ob->y;
-	new->obclass = rocketobj;
+	newObj->tilex = ob->tilex;
+	newObj->tiley = ob->tiley;
+	newObj->x = ob->x;
+	newObj->y = ob->y;
+	newObj->obclass = rocketobj;
 	switch(ob->obclass)
 	{
 	case deathobj:
-		new->state = &s_hrocket;
-		new->obclass = hrocketobj;
+		newObj->state = &s_hrocket;
+		newObj->obclass = hrocketobj;
 		PlaySoundLocActor (KNIGHTMISSILESND,new);
 		break;
 	case angelobj:
-		new->state = &s_spark1;
-		new->obclass = sparkobj;
+		newObj->state = &s_spark1;
+		newObj->obclass = sparkobj;
 		PlaySoundLocActor (ANGELFIRESND,new);
 		break;
 	default:
 		PlaySoundLocActor (MISSILEFIRESND,new);
 	}
 
-	new->dir = nodir;
-	new->angle = iangle;
-	new->speed = 0x2000l;
-	new->flags = FL_NONMARK;
-	new->active = true;
+	newObj->dir = nodir;
+	newObj->angle = iangle;
+	newObj->speed = 0x2000l;
+	newObj->flags = FL_NONMARK;
+	newObj->active = true;
 }
 
 
@@ -1800,9 +1800,9 @@ void SpawnAngel (int tilex, int tiley)
 		s_angeldie11.tictime = 105;
 
 	SpawnNewObj (tilex,tiley,&s_angelstand);
-	new->obclass = angelobj;
-	new->hitpoints = starthitpoints[gamestate.difficulty][en_angel];
-	new->flags |= FL_SHOOTABLE|FL_AMBUSH;
+	newObj->obclass = angelobj;
+	newObj->hitpoints = starthitpoints[gamestate.difficulty][en_angel];
+	newObj->flags |= FL_SHOOTABLE|FL_AMBUSH;
 	if (!loadedgame)
 	  gamestate.killtotal++;
 }
@@ -1915,9 +1915,9 @@ void SpawnSpectre (int tilex, int tiley)
 	unsigned	*map,tile;
 
 	SpawnNewObj (tilex,tiley,&s_spectrewait1);
-	new->obclass = spectreobj;
-	new->hitpoints = starthitpoints[gamestate.difficulty][en_spectre];
-	new->flags |= FL_SHOOTABLE|FL_AMBUSH; // |FL_NEVERMARK|FL_NONMARK;
+	newObj->obclass = spectreobj;
+	newObj->hitpoints = starthitpoints[gamestate.difficulty][en_spectre];
+	newObj->flags |= FL_SHOOTABLE|FL_AMBUSH; // |FL_NEVERMARK|FL_NONMARK;
 	if (!loadedgame)
 	  gamestate.killtotal++;
 }
@@ -2011,11 +2011,11 @@ void SpawnGhosts (int which, int tilex, int tiley)
 	   break;
 	}
 
-	new->obclass = ghostobj;
-	new->speed = SPDDOG;
+	newObj->obclass = ghostobj;
+	newObj->speed = SPDDOG;
 
-	new->dir = east;
-	new->flags |= FL_AMBUSH;
+	newObj->dir = east;
+	newObj->flags |= FL_AMBUSH;
 	if (!loadedgame)
 	  gamestate.killtotal++;
 }
@@ -2219,12 +2219,12 @@ void SpawnSchabbs (int tilex, int tiley)
 		s_schabbdie2.tictime = 5;
 
 	SpawnNewObj (tilex,tiley,&s_schabbstand);
-	new->speed = SPDPATROL;
+	newObj->speed = SPDPATROL;
 
-	new->obclass = schabbobj;
-	new->hitpoints = starthitpoints[gamestate.difficulty][en_schabbs];
-	new->dir = south;
-	new->flags |= FL_SHOOTABLE|FL_AMBUSH;
+	newObj->obclass = schabbobj;
+	newObj->hitpoints = starthitpoints[gamestate.difficulty][en_schabbs];
+	newObj->dir = south;
+	newObj->flags |= FL_SHOOTABLE|FL_AMBUSH;
 	if (!loadedgame)
 	  gamestate.killtotal++;
 }
@@ -2248,12 +2248,12 @@ void SpawnGift (int tilex, int tiley)
 	  s_giftdie2.tictime = 5;
 
 	SpawnNewObj (tilex,tiley,&s_giftstand);
-	new->speed = SPDPATROL;
+	newObj->speed = SPDPATROL;
 
-	new->obclass = giftobj;
-	new->hitpoints = starthitpoints[gamestate.difficulty][en_gift];
-	new->dir = north;
-	new->flags |= FL_SHOOTABLE|FL_AMBUSH;
+	newObj->obclass = giftobj;
+	newObj->hitpoints = starthitpoints[gamestate.difficulty][en_gift];
+	newObj->dir = north;
+	newObj->flags |= FL_SHOOTABLE|FL_AMBUSH;
 	if (!loadedgame)
 	  gamestate.killtotal++;
 }
@@ -2277,12 +2277,12 @@ void SpawnFat (int tilex, int tiley)
 	  s_fatdie2.tictime = 5;
 
 	SpawnNewObj (tilex,tiley,&s_fatstand);
-	new->speed = SPDPATROL;
+	newObj->speed = SPDPATROL;
 
-	new->obclass = fatobj;
-	new->hitpoints = starthitpoints[gamestate.difficulty][en_fat];
-	new->dir = south;
-	new->flags |= FL_SHOOTABLE|FL_AMBUSH;
+	newObj->obclass = fatobj;
+	newObj->hitpoints = starthitpoints[gamestate.difficulty][en_fat];
+	newObj->dir = south;
+	newObj->flags |= FL_SHOOTABLE|FL_AMBUSH;
 	if (!loadedgame)
 	  gamestate.killtotal++;
 }
@@ -2310,22 +2310,22 @@ void T_SchabbThrow (objtype *ob)
 	iangle = angle/(M_PI*2)*ANGLES;
 
 	GetNewActor ();
-	new->state = &s_needle1;
-	new->ticcount = 1;
+	newObj->state = &s_needle1;
+	newObj->ticcount = 1;
 
-	new->tilex = ob->tilex;
-	new->tiley = ob->tiley;
-	new->x = ob->x;
-	new->y = ob->y;
-	new->obclass = needleobj;
-	new->dir = nodir;
-	new->angle = iangle;
-	new->speed = 0x2000l;
+	newObj->tilex = ob->tilex;
+	newObj->tiley = ob->tiley;
+	newObj->x = ob->x;
+	newObj->y = ob->y;
+	newObj->obclass = needleobj;
+	newObj->dir = nodir;
+	newObj->angle = iangle;
+	newObj->speed = 0x2000l;
 
-	new->flags = FL_NONMARK;
-	new->active = true;
+	newObj->flags = FL_NONMARK;
+	newObj->active = ac_yes;
 
-	PlaySoundLocActor (SCHABBSTHROWSND,new);
+	PlaySoundLocActor (SCHABBSTHROWSND,newObj);
 }
 
 /*
@@ -2350,21 +2350,21 @@ void T_GiftThrow (objtype *ob)
 	iangle = angle/(M_PI*2)*ANGLES;
 
 	GetNewActor ();
-	new->state = &s_rocket;
-	new->ticcount = 1;
+	newObj->state = &s_rocket;
+	newObj->ticcount = 1;
 
-	new->tilex = ob->tilex;
-	new->tiley = ob->tiley;
-	new->x = ob->x;
-	new->y = ob->y;
-	new->obclass = rocketobj;
-	new->dir = nodir;
-	new->angle = iangle;
-	new->speed = 0x2000l;
-	new->flags = FL_NONMARK;
-	new->active = true;
+	newObj->tilex = ob->tilex;
+	newObj->tiley = ob->tiley;
+	newObj->x = ob->x;
+	newObj->y = ob->y;
+	newObj->obclass = rocketobj;
+	newObj->dir = nodir;
+	newObj->angle = iangle;
+	newObj->speed = 0x2000l;
+	newObj->flags = FL_NONMARK;
+	newObj->active = ac_yes;
 
-	PlaySoundLocActor (MISSILEFIRESND,new);
+	PlaySoundLocActor (MISSILEFIRESND,newObj);
 }
 
 
@@ -2384,8 +2384,8 @@ void T_Schabb (objtype *ob)
 	bool	dodge;
 
 	dodge = false;
-	dx = abs(ob->tilex - player->tilex);
-	dy = abs(ob->tiley - player->tiley);
+	dx = abs((int)(ob->tilex - player->tilex));
+	dy = abs((int)(ob->tiley - player->tiley));
 	dist = dx>dy ? dx : dy;
 
 	if (CheckLine(ob))						// got a shot at player?
@@ -2476,8 +2476,8 @@ void T_Gift (objtype *ob)
 	bool	dodge;
 
 	dodge = false;
-	dx = abs(ob->tilex - player->tilex);
-	dy = abs(ob->tiley - player->tiley);
+	dx = abs((int)(ob->tilex - player->tilex));
+	dy = abs((int)(ob->tiley - player->tiley));
 	dist = dx>dy ? dx : dy;
 
 	if (CheckLine(ob))						// got a shot at player?
@@ -2568,8 +2568,8 @@ void T_Fat (objtype *ob)
 	bool	dodge;
 
 	dodge = false;
-	dx = abs(ob->tilex - player->tilex);
-	dy = abs(ob->tiley - player->tiley);
+	dx = abs((int)(ob->tilex - player->tilex));
+	dy = abs((int)(ob->tiley - player->tiley));
 	dist = dx>dy ? dx : dy;
 
 	if (CheckLine(ob))						// got a shot at player?
@@ -2658,7 +2658,7 @@ void T_Fat (objtype *ob)
 //
 extern	statetype s_fakestand;
 
-extern	statetype s_fakechase1;
+// extern	statetype s_fakechase1;
 extern	statetype s_fakechase1s;
 extern	statetype s_fakechase2;
 extern	statetype s_fakechase3;
@@ -2834,12 +2834,12 @@ void SpawnFakeHitler (int tilex, int tiley)
 	  s_hitlerdie2.tictime = 5;
 
 	SpawnNewObj (tilex,tiley,&s_fakestand);
-	new->speed = SPDPATROL;
+	newObj->speed = SPDPATROL;
 
-	new->obclass = fakeobj;
-	new->hitpoints = starthitpoints[gamestate.difficulty][en_fake];
-	new->dir = north;
-	new->flags |= FL_SHOOTABLE|FL_AMBUSH;
+	newObj->obclass = fakeobj;
+	newObj->hitpoints = starthitpoints[gamestate.difficulty][en_fake];
+	newObj->dir = north;
+	newObj->flags |= FL_SHOOTABLE|FL_AMBUSH;
 	if (!loadedgame)
 	  gamestate.killtotal++;
 }
@@ -2864,12 +2864,12 @@ void SpawnHitler (int tilex, int tiley)
 
 
 	SpawnNewObj (tilex,tiley,&s_mechastand);
-	new->speed = SPDPATROL;
+	newObj->speed = SPDPATROL;
 
-	new->obclass = mechahitlerobj;
-	new->hitpoints = starthitpoints[gamestate.difficulty][en_hitler];
-	new->dir = south;
-	new->flags |= FL_SHOOTABLE|FL_AMBUSH;
+	newObj->obclass = mechahitlerobj;
+	newObj->hitpoints = starthitpoints[gamestate.difficulty][en_hitler];
+	newObj->dir = south;
+	newObj->flags |= FL_SHOOTABLE|FL_AMBUSH;
 	if (!loadedgame)
 	  gamestate.killtotal++;
 }
@@ -2889,17 +2889,17 @@ void A_HitlerMorph (objtype *ob)
 
 
 	SpawnNewObj (ob->tilex,ob->tiley,&s_hitlerchase1);
-	new->speed = SPDPATROL*5;
+	newObj->speed = SPDPATROL*5;
 
-	new->x = ob->x;
-	new->y = ob->y;
+	newObj->x = ob->x;
+	newObj->y = ob->y;
 
-	new->distance = ob->distance;
-	new->dir = ob->dir;
-	new->flags = ob->flags | FL_SHOOTABLE;
+	newObj->distance = ob->distance;
+	newObj->dir = ob->dir;
+	newObj->flags = ob->flags | FL_SHOOTABLE;
 
-	new->obclass = realhitlerobj;
-	new->hitpoints = hitpoints[gamestate.difficulty];
+	newObj->obclass = realhitlerobj;
+	newObj->hitpoints = hitpoints[gamestate.difficulty];
 }
 
 
@@ -2944,21 +2944,21 @@ void T_FakeFire (objtype *ob)
 	iangle = angle/(M_PI*2)*ANGLES;
 
 	GetNewActor ();
-	new->state = &s_fire1;
-	new->ticcount = 1;
+	newObj->state = &s_fire1;
+	newObj->ticcount = 1;
 
-	new->tilex = ob->tilex;
-	new->tiley = ob->tiley;
-	new->x = ob->x;
-	new->y = ob->y;
-	new->dir = nodir;
-	new->angle = iangle;
-	new->obclass = fireobj;
-	new->speed = 0x1200l;
-	new->flags = FL_NEVERMARK;
-	new->active = true;
+	newObj->tilex = ob->tilex;
+	newObj->tiley = ob->tiley;
+	newObj->x = ob->x;
+	newObj->y = ob->y;
+	newObj->dir = nodir;
+	newObj->angle = iangle;
+	newObj->obclass = fireobj;
+	newObj->speed = 0x1200l;
+	newObj->flags = FL_NEVERMARK;
+	newObj->active = ac_yes;
 
-	PlaySoundLocActor (FLAMETHROWERSND,new);
+	PlaySoundLocActor (FLAMETHROWERSND,newObj);
 }
 
 
@@ -3078,8 +3078,8 @@ void T_Chase (objtype *ob)
 	dodge = false;
 	if (CheckLine(ob))	// got a shot at player?
 	{
-		dx = abs(ob->tilex - player->tilex);
-		dy = abs(ob->tiley - player->tiley);
+		dx = abs((int)(ob->tilex - player->tilex));
+		dy = abs((int)(ob->tiley - player->tiley));
 		dist = dx>dy ? dx : dy;
 		if (!dist || (dist==1 && ob->distance<0x4000) )
 			chance = 300;
@@ -3346,7 +3346,7 @@ void SelectPathDir (objtype *ob)
 	if (spot<8)
 	{
 	// new direction
-		ob->dir = spot;
+		ob->dir = (dirtype)spot;
 	}
 
 	ob->distance = TILEGLOBAL;
@@ -3454,8 +3454,8 @@ void T_Shoot (objtype *ob)
 	if (!CheckLine (ob))			// player is behind a wall
 	  return;
 
-	dx = abs(ob->tilex - player->tilex);
-	dy = abs(ob->tiley - player->tiley);
+	dx = abs((int)(ob->tilex - player->tilex));
+	dy = abs((int)(ob->tiley - player->tiley));
 	dist = dx>dy ? dx:dy;
 
 	if (ob->obclass == ssobj || ob->obclass == bossobj)
@@ -3623,11 +3623,11 @@ void SpawnBJVictory (void)
 	unsigned	*map,tile;
 
 	SpawnNewObj (player->tilex,player->tiley+1,&s_bjrun1);
-	new->x = player->x;
-	new->y = player->y;
-	new->obclass = bjobj;
-	new->dir = north;
-	new->temp1 = 6;			// tiles to run forward
+	newObj->x = player->x;
+	newObj->y = player->y;
+	newObj->obclass = bjobj;
+	newObj->dir = north;
+	newObj->temp1 = 6;			// tiles to run forward
 }
 
 

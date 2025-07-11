@@ -1,3 +1,6 @@
+#ifndef GFXVWL6_H
+#define GFXVWL6_H
+
 //////////////////////////////////////
 //
 // Graphics .H file for .WL6
@@ -214,3 +217,5 @@ typedef enum {
 //
 // Thank you for using IGRAB!
 //
+#endif
+

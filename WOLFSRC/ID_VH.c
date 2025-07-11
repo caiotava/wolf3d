@@ -18,7 +18,7 @@
 
 #define UNCACHEGRCHUNK(chunk)	{MM_FreePtr(&grsegs[chunk]);grneeded[chunk]&=~ca_levelbit;}
 
-byte	update[UPDATEHIGH][UPDATEWIDE];
+// byte	update[UPDATEHIGH][UPDATEWIDE];
 
 //==========================================================================
 
@@ -39,57 +39,43 @@ void	VWL_UpdateScreenBlocks (void);
 
 void VW_DrawPropString (char *string)
 {
-	fontstruct *font;
-	int			width,step,height,i;
-	byte		*source, *dest, *origdest;
-	byte		ch,mask;
+	fontstruct  *font;
+	int		    width, step, height;
+	byte	    *source, *dest;
+	byte	    ch;
+	int i;
+	int sx, sy;
 
-	font = (fontstruct *)grsegs[STARTFONT+fontnumber];
-	height = bufferheight = font->height;
-	dest = origdest = MK_FP(SCREENSEG,bufferofs+ylookup[py]+(px>>2));
-	mask = 1<<(px&3);
+	// dest = VL_LockSurface(screenBuffer);
+	if(dest == NULL) return;
 
+	font = (fontstruct *) grsegs[STARTFONT+fontnumber];
+	height = font->height;
+	// dest += scaleFactor * (ylookup[py] + px);
 
-	while ((ch = *string++)!=0)
+	while ((ch = (byte)*string++)!=0)
 	{
 		width = step = font->width[ch];
 		source = ((byte *)font)+font->location[ch];
 		while (width--)
 		{
-			VGAMAPMASK(mask);
-
-asm	mov	ah,[BYTE PTR fontcolor]
-asm	mov	bx,[step]
-asm	mov	cx,[height]
-asm	mov	dx,[linewidth]
-asm	lds	si,[source]
-asm	les	di,[dest]
-
-vertloop:
-asm	mov	al,[si]
-asm	or	al,al
-asm	je	next
-asm	mov	[es:di],ah			// draw color
-
-next:
-asm	add	si,bx
-asm	add	di,dx
-asm	loop	vertloop
-asm	mov	ax,ss
-asm	mov	ds,ax
+			for(i=0; i<height; i++)
+			{
+				if(source[i*step])
+				{
+					// for(sy=0; sy<scaleFactor; sy++)
+					// 	for(sx=0; sx<scaleFactor; sx++)
+					// 		dest[ylookup[scaleFactor*i+sy]+sx]=fontcolor;
+				}
+			}
 
 			source++;
 			px++;
-			mask <<= 1;
-			if (mask == 16)
-			{
-				mask = 1;
-				dest++;
-			}
+			// dest+=scaleFactor;
 		}
 	}
-bufferheight = height;
-bufferwidth = ((dest+1)-origdest)*4;
+
+	// VL_UnlockSurface(screenBuffer);
 }
 
 
@@ -102,7 +88,7 @@ void VW_DrawColorPropString (char *string)
 
 	font = (fontstruct *)grsegs[STARTFONT+fontnumber];
 	height = bufferheight = font->height;
-	dest = origdest = MK_FP(SCREENSEG,bufferofs+ylookup[py]+(px>>2));
+	dest = origdest = (byte*)bufferofs+ylookup[py]+(px>>2);
 	mask = 1<<(px&3);
 
 
@@ -112,34 +98,34 @@ void VW_DrawColorPropString (char *string)
 		source = ((byte *)font)+font->location[ch];
 		while (width--)
 		{
-			VGAMAPMASK(mask);
-
-asm	mov	ah,[BYTE PTR fontcolor]
-asm	mov	bx,[step]
-asm	mov	cx,[height]
-asm	mov	dx,[linewidth]
-asm	lds	si,[source]
-asm	les	di,[dest]
-
-vertloop:
-asm	mov	al,[si]
-asm	or	al,al
-asm	je	next
-asm	mov	[es:di],ah			// draw color
-
-next:
-asm	add	si,bx
-asm	add	di,dx
-
-asm rcr cx,1				// inc font color
-asm jc  cont
-asm	inc ah
-
-cont:
-asm rcl cx,1
-asm	loop	vertloop
-asm	mov	ax,ss
-asm	mov	ds,ax
+// 			VGAMAPMASK(mask);
+//
+// asm	mov	ah,[BYTE PTR fontcolor]
+// asm	mov	bx,[step]
+// asm	mov	cx,[height]
+// asm	mov	dx,[linewidth]
+// asm	lds	si,[source]
+// asm	les	di,[dest]
+//
+// vertloop:
+// asm	mov	al,[si]
+// asm	or	al,al
+// asm	je	next
+// asm	mov	[es:di],ah			// draw color
+//
+// next:
+// asm	add	si,bx
+// asm	add	di,dx
+//
+// asm rcr cx,1				// inc font color
+// asm jc  cont
+// asm	inc ah
+//
+// cont:
+// asm rcl cx,1
+// asm	loop	vertloop
+// asm	mov	ax,ss
+// asm	mov	ds,ax
 
 			source++;
 			px++;
@@ -180,8 +166,8 @@ void VL_MungePic (byte *source, unsigned width, unsigned height)
 //
 // copy the pic to a temp buffer
 //
-	MM_GetPtr (&(memptr)temp,size);
-	_fmemcpy (temp,source,size);
+	MM_GetPtr ((memptr*)temp,size);
+	memcpy (temp,source,size);
 
 //
 // munge it back into the original buffer
@@ -200,7 +186,7 @@ void VL_MungePic (byte *source, unsigned width, unsigned height)
 		}
 	}
 
-	MM_FreePtr (&(memptr)temp);
+	MM_FreePtr ((memptr*)temp);
 }
 
 void VWL_MeasureString (char *string, word *width, word *height
@@ -290,8 +276,8 @@ int VW_MarkUpdateBlock (int x1, int y1, int x2, int y2)
 
 void VWB_DrawTile8 (int x, int y, int tile)
 {
-	if (VW_MarkUpdateBlock (x,y,x+7,y+7))
-		LatchDrawChar(x,y,tile);
+	// if (VW_MarkUpdateBlock (x,y,x+7,y+7))
+		// LatchDrawChar(x,y,tile);
 }
 
 void VWB_DrawTile8M (int x, int y, int tile)
@@ -311,8 +297,8 @@ void VWB_DrawPic (int x, int y, int chunknum)
 	width = pictable[picnum].width;
 	height = pictable[picnum].height;
 
-	if (VW_MarkUpdateBlock (x,y,x+width-1,y+height-1))
-		VL_MemToScreen (grsegs[chunknum],width,height,x,y);
+	// if (VW_MarkUpdateBlock (x,y,x+width-1,y+height-1))
+	// 	VL_MemToScreen (grsegs[chunknum],width,height,x,y);
 }
 
 
@@ -352,7 +338,7 @@ void VWB_Vlin (int y1, int y2, int x, int color)
 
 void VW_UpdateScreen (void)
 {
-	VH_UpdateScreen ();
+	// VH_UpdateScreen ();
 }
 
 
@@ -380,7 +366,7 @@ void LatchDrawPic (unsigned x, unsigned y, unsigned picnum)
 	height = pictable[picnum-STARTPICS].height;
 	source = latchpics[2+picnum-LATCHPICS_LUMP_START];
 
-	VL_LatchToScreen (source,wide/4,height,x*8,y);
+	// VL_LatchToScreen (source,wide/4,height,x*8,y);
 }
 
 
@@ -446,12 +432,12 @@ void LoadLatchMem (void)
 		CA_CacheGrChunk (i);
 		width = pictable[i-STARTPICS].width;
 		height = pictable[i-STARTPICS].height;
-		VL_MemToLatch (grsegs[i],width,height,destoff);
+		// VL_MemToLatch (grsegs[i],width,height,destoff);
 		destoff += width/4 *height;
 		UNCACHEGRCHUNK(i);
 	}
 
-	EGAMAPMASK(15);
+	// EGAMAPMASK(15);
 }
 
 //==========================================================================
@@ -490,50 +476,50 @@ bool FizzleFade (unsigned source, unsigned dest,
 		if (abortable && IN_CheckAck () )
 			return true;
 
-		asm	mov	es,[screenseg]
+		// asm	mov	es,[screenseg]
 
 		for (p=0;p<pixperframe;p++)
 		{
-			//
-			// seperate random value into x/y pair
-			//
-			asm	mov	ax,[WORD PTR rndval]
-			asm	mov	dx,[WORD PTR rndval+2]
-			asm	mov	bx,ax
-			asm	dec	bl
-			asm	mov	[BYTE PTR y],bl			// low 8 bits - 1 = y xoordinate
-			asm	mov	bx,ax
-			asm	mov	cx,dx
-			asm	mov	[BYTE PTR x],ah			// next 9 bits = x xoordinate
-			asm	mov	[BYTE PTR x+1],dl
-			//
-			// advance to next random element
-			//
-			asm	shr	dx,1
-			asm	rcr	ax,1
-			asm	jnc	noxor
-			asm	xor	dx,0x0001
-			asm	xor	ax,0x2000
-noxor:
-			asm	mov	[WORD PTR rndval],ax
-			asm	mov	[WORD PTR rndval+2],dx
-
-			if (x>width || y>height)
-				continue;
-			drawofs = source+ylookup[y] + (x>>2);
-
-			//
-			// copy one pixel
-			//
-			mask = x&3;
-			VGAREADMAP(mask);
-			mask = maskb[mask];
-			VGAMAPMASK(mask);
-
-			asm	mov	di,[drawofs]
-			asm	mov	al,[es:di]
-			asm add	di,[pagedelta]
-			asm	mov	[es:di],al
+// 			//
+// 			// seperate random value into x/y pair
+// 			//
+// 			asm	mov	ax,[WORD PTR rndval]
+// 			asm	mov	dx,[WORD PTR rndval+2]
+// 			asm	mov	bx,ax
+// 			asm	dec	bl
+// 			asm	mov	[BYTE PTR y],bl			// low 8 bits - 1 = y xoordinate
+// 			asm	mov	bx,ax
+// 			asm	mov	cx,dx
+// 			asm	mov	[BYTE PTR x],ah			// next 9 bits = x xoordinate
+// 			asm	mov	[BYTE PTR x+1],dl
+// 			//
+// 			// advance to next random element
+// 			//
+// 			asm	shr	dx,1
+// 			asm	rcr	ax,1
+// 			asm	jnc	noxor
+// 			asm	xor	dx,0x0001
+// 			asm	xor	ax,0x2000
+// noxor:
+// 			asm	mov	[WORD PTR rndval],ax
+// 			asm	mov	[WORD PTR rndval+2],dx
+//
+// 			if (x>width || y>height)
+// 				continue;
+// 			drawofs = source+ylookup[y] + (x>>2);
+//
+// 			//
+// 			// copy one pixel
+// 			//
+// 			mask = x&3;
+// 			VGAREADMAP(mask);
+// 			mask = maskb[mask];
+// 			VGAMAPMASK(mask);
+//
+// 			asm	mov	di,[drawofs]
+// 			asm	mov	al,[es:di]
+// 			asm add	di,[pagedelta]
+// 			asm	mov	[es:di],al
 
 			if (rndval == 1)		// entire sequence has been completed
 				return false;

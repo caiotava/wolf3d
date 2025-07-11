@@ -1,3 +1,6 @@
+#ifndef IDHEAD_H
+#define	IDHEAD_H
+
 // ID_HEAD.H
 
 
@@ -30,3 +33,4 @@ typedef	struct
 
 void	Quit (char *error);		// defined in user program
 
+#endif

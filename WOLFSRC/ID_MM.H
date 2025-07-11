@@ -1,8 +1,10 @@
 // ID_MM.H
 
 #ifndef __ID_CA__
-
 #define __ID_CA__
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define SAVENEARHEAP	0x400		// space to leave in data segment
 #define SAVEFARHEAP		0			// space to leave in far heap
@@ -93,4 +95,7 @@ void MM_BombOnError (bool bomb);
 
 void MML_UseSpace (unsigned segstart, unsigned seglength);
 
+#ifdef __cplusplus
+}
+#endif
 #endif

@@ -28,7 +28,7 @@ exit_t		playstate;
 
 int			DebugOk;
 
-objtype 	objlist[MAXACTORS],*new,*obj,*player,*lastobj,
+objtype 	objlist[MAXACTORS],*newObj,*obj,*player,*lastobj,
 			*objfreelist,*killerobj;
 
 unsigned	farmapylookup[MAPSIZE];
@@ -377,9 +377,9 @@ void PollMouseMove (void)
 {
 	int	mousexmove,mouseymove;
 
-	Mouse(MDelta);
-	mousexmove = _CX;
-	mouseymove = _DX;
+	// Mouse(MDelta);
+	// mousexmove = _CX;
+	// mouseymove = _DX;
 
 	controlx += mousexmove*10/(13-mouseadjustment);
 	controly += mouseymove*20/(13-mouseadjustment);
@@ -753,14 +753,14 @@ void CheckKeys (void)
 	if (Paused)
 	{
 		bufferofs = displayofs;
-		LatchDrawPic (20-4,80-2*8,PAUSEDPIC);
+		// LatchDrawPic (20-4,80-2*8,PAUSEDPIC);
 		SD_MusicOff();
 		IN_Ack();
 		IN_ClearKeysDown ();
 		SD_MusicOn();
 		Paused = false;
-		if (MousePresent)
-			Mouse(MDelta);	// Clear accumulated mouse movement
+		// if (MousePresent)
+		// 	Mouse(MDelta);	// Clear accumulated mouse movement
 		return;
 	}
 
@@ -811,8 +811,8 @@ void CheckKeys (void)
 		if (loadedgame)
 			playstate = ex_abort;
 		lasttimecount = TimeCount;
-		if (MousePresent)
-			Mouse(MDelta);	// Clear accumulated mouse movement
+		// if (MousePresent)
+		// 	Mouse(MDelta);	// Clear accumulated mouse movement
 		PM_CheckMainMem ();
 		return;
 	}
@@ -826,8 +826,8 @@ void CheckKeys (void)
 		fontnumber=0;
 		SETFONTCOLOR(0,15);
 		DebugKeys();
-		if (MousePresent)
-			Mouse(MDelta);	// Clear accumulated mouse movement
+		// if (MousePresent)
+		// 	Mouse(MDelta);	// Clear accumulated mouse movement
 		lasttimecount = TimeCount;
 		return;
 	}
@@ -896,7 +896,7 @@ void InitActorList (void)
 // give the player the first free spots
 //
 	GetNewActor ();
-	player = new;
+	player = newObj;
 
 }
 
@@ -921,16 +921,16 @@ void GetNewActor (void)
 	if (!objfreelist)
 		Quit ("GetNewActor: No free spots in objlist!");
 
-	new = objfreelist;
-	objfreelist = new->prev;
-	memset (new,0,sizeof(*new));
+	newObj = objfreelist;
+	objfreelist = newObj->prev;
+	memset (newObj,0,sizeof(*newObj));
 
 	if (lastobj)
-		lastobj->next = new;
-	new->prev = lastobj;	// new->next is allready NULL from memset
+		lastobj->next = newObj;
+	newObj->prev = lastobj;	// new->next is allready NULL from memset
 
-	new->active = false;
-	lastobj = new;
+	newObj->active = ac_yes;
+	lastobj = newObj;
 
 	objcount++;
 }
@@ -1004,8 +1004,8 @@ void StopMusic(void)
 	for (i = 0;i < LASTMUSIC;i++)
 		if (audiosegs[STARTMUSIC + i])
 		{
-			MM_SetPurge(&((memptr)audiosegs[STARTMUSIC + i]),3);
-			MM_SetLock(&((memptr)audiosegs[STARTMUSIC + i]),false);
+			MM_SetPurge(((memptr*)audiosegs[STARTMUSIC + i]),3);
+			MM_SetLock(((memptr*)audiosegs[STARTMUSIC + i]),false);
 		}
 }
 
@@ -1025,7 +1025,7 @@ void StartMusic(void)
 	musicnames	chunk;
 
 	SD_MusicOff();
-	chunk = songs[gamestate.mapon+gamestate.episode*10];
+	chunk = (musicnames)songs[gamestate.mapon+gamestate.episode*10];
 
 //	if ((chunk == -1) || (MusicMode != smm_AdLib))
 //DEBUG control panel		return;
@@ -1037,7 +1037,7 @@ void StartMusic(void)
 		mmerror = false;
 	else
 	{
-		MM_SetLock(&((memptr)audiosegs[STARTMUSIC + chunk]),true);
+		MM_SetLock(((memptr*)audiosegs[STARTMUSIC + chunk]),true);
 		SD_StartMusic((MusicGroup *)audiosegs[STARTMUSIC + chunk]);
 	}
 }
@@ -1065,7 +1065,7 @@ byte	whiteshifts[NUMREDSHIFTS][768];
 int		damagecount,bonuscount;
 bool	palshifted;
 
-extern 	byte	gamepal;
+byte	gamepal;
 
 /*
 =====================
@@ -1370,7 +1370,9 @@ void PlayLoop (void)
 	int		give;
 	int	helmetangle;
 
-	playstate = TimeCount = lasttimecount = 0;
+	playstate = ex_stillplaying;
+	TimeCount = 0;
+	lasttimecount = 0;
 	frameon = 0;
 	running = false;
 	anglefrac = 0;
@@ -1379,8 +1381,8 @@ void PlayLoop (void)
 	memset (buttonstate,0,sizeof(buttonstate));
 	ClearPaletteShifts ();
 
-	if (MousePresent)
-		Mouse(MDelta);	// Clear accumulated mouse movement
+	// if (MousePresent)
+	// 	Mouse(MDelta);	// Clear accumulated mouse movement
 
 	if (demoplayback)
 		IN_StartAck ();
@@ -1389,7 +1391,7 @@ void PlayLoop (void)
 	{
 		if (virtualreality)
 		{
-			helmetangle = peek (0x40,0xf0);
+			// helmetangle = peek (0x40,0xf0);
 			player->angle += helmetangle;
 			if (player->angle >= ANGLES)
 				player->angle -= ANGLES;

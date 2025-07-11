@@ -146,7 +146,7 @@ void SpawnStatic (int tilex, int tiley, int type)
 	switch (statinfo[type].type)
 	{
 	case block:
-		(unsigned)actorat[tilex][tiley] = 1;		// consider it a blocking tile
+		// *actorat[tilex][tiley] = 1;		// consider it a blocking tile
 	case dressing:
 		laststatobj->flags = 0;
 		break;
@@ -332,7 +332,7 @@ void InitAreas (void)
 void InitDoorList (void)
 {
 	memset (areabyplayer,0,sizeof(areabyplayer));
-	_fmemset (areaconnect,0,sizeof(areaconnect));
+	memset (areaconnect,0,sizeof(areaconnect));
 
 	lastdoorobj = &doorobjlist[0];
 	doornum = 0;
@@ -362,7 +362,7 @@ void SpawnDoor (int tilex, int tiley, bool vertical, int lock)
 	lastdoorobj->lock = lock;
 	lastdoorobj->action = dr_closed;
 
-	(unsigned)actorat[tilex][tiley] = doornum | 0x80;	// consider it a solid wall
+	actorat[tilex][tiley] = (objtype*) (doornum | 0x80);	// consider it a solid wall
 
 //
 // make the door tile a special tile, and mark the adjacent tiles
@@ -479,8 +479,7 @@ void CloseDoor (int door)
 //
 // make the door space solid
 //
-	(unsigned)actorat[tilex][tiley]
-		= door | 0x80;
+	actorat[tilex][tiley] = (objtype*)(door | 0x80);
 }
 
 
@@ -624,7 +623,7 @@ void DoorClosing (int door)
 	tilex = doorobjlist[door].tilex;
 	tiley = doorobjlist[door].tiley;
 
-	if ( ((unsigned)actorat[tilex][tiley] != (door | 0x80))
+	if ( (actorat[tilex][tiley] != (objtype*)(door | 0x80))
 	|| (player->tilex == tilex && player->tiley == tiley) )
 	{			// something got inside the door
 		OpenDoor (door);
@@ -750,7 +749,7 @@ void PushWall (int checkx, int checky, int dir)
 			return;
 		}
 		tilemap[checkx][checky-1] = oldtile;
-		actorat[checkx][checky-1] = (objstruct*) &tilemap[checkx][checky-1];
+		actorat[checkx][checky-1] =  &tilemap[checkx][checky-1];
 		break;
 
 	case di_east:
@@ -761,7 +760,7 @@ void PushWall (int checkx, int checky, int dir)
 		}
 
 		tilemap[checkx+1][checky] = oldtile;
-		actorat[checkx+1][checky] = (objstruct*) &tilemap[checkx+1][checky];
+		actorat[checkx+1][checky] = &tilemap[checkx+1][checky];
 		break;
 
 	case di_south:
@@ -772,7 +771,7 @@ void PushWall (int checkx, int checky, int dir)
 		}
 
 		tilemap[checkx][checky+1] = oldtile;
-		actorat[checkx][checky+1] = (objstruct*) &tilemap[checkx][checky+1];
+		actorat[checkx][checky+1] = &tilemap[checkx][checky+1];
 		break;
 
 	case di_west:
@@ -783,7 +782,7 @@ void PushWall (int checkx, int checky, int dir)
 		}
 
 		tilemap[checkx-1][checky] = oldtile;
-		actorat[checkx-1][checky] = (objstruct*) &tilemap[checkx-1][checky];
+		actorat[checkx-1][checky] = &tilemap[checkx-1][checky];
 		break;
 	}
 
@@ -829,7 +828,7 @@ void MovePWalls (void)
 		// the tile can now be walked into
 		//
 		tilemap[pwallx][pwally] = 0;
-		(unsigned)actorat[pwallx][pwally] = 0;
+		actorat[pwallx][pwally] = NULL;
 		*(mapsegs[0]+farmapylookup[pwally]+pwallx) = player->areanumber+AREATILE;
 
 		//
@@ -854,7 +853,7 @@ void MovePWalls (void)
 					pwallstate = 0;
 					return;
 				}
-				(unsigned)actorat[pwallx][pwally-1] =
+				actorat[pwallx][pwally-1] = (objtype*) oldtile;
 				tilemap[pwallx][pwally-1] = oldtile;
 				break;
 
@@ -865,7 +864,7 @@ void MovePWalls (void)
 					pwallstate = 0;
 					return;
 				}
-				(unsigned)actorat[pwallx+1][pwally] =
+				actorat[pwallx+1][pwally] = (objtype*) oldtile;
 				tilemap[pwallx+1][pwally] = oldtile;
 				break;
 
@@ -876,8 +875,9 @@ void MovePWalls (void)
 					pwallstate = 0;
 					return;
 				}
-				(unsigned)actorat[pwallx][pwally+1] =
+
 				tilemap[pwallx][pwally+1] = oldtile;
+				actorat[pwallx][pwally+1] = (objtype*)oldtile;
 				break;
 
 			case di_west:
@@ -887,7 +887,7 @@ void MovePWalls (void)
 					pwallstate = 0;
 					return;
 				}
-				(unsigned)actorat[pwallx-1][pwally] =
+				actorat[pwallx-1][pwally] = (objtype*) oldtile;
 				tilemap[pwallx-1][pwally] = oldtile;
 				break;
 			}

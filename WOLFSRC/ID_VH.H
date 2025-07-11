@@ -1,3 +1,6 @@
+#ifndef IDVH_H
+#define	IDVH_H
+
 // ID_VH.H
 
 
@@ -132,3 +135,4 @@ bool 	FizzleFade (unsigned source, unsigned dest,
 extern	unsigned	latchpics[NUMLATCHPICS];
 extern	unsigned freelatch;
 
+#endif

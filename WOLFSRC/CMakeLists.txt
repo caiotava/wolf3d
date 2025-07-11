@@ -4,31 +4,29 @@ find_package(PhysFS CONFIG REQUIRED)
 
 add_executable(wolf3d
     filesystem.c
-    CONTIGSC.C
-    DETECT.C
+    ID_MM.c
+    DETECT.c
     ID_CA.c
-    ID_IN.C
-    ID_MM.C
-    ID_PM.C
-    ID_SD.C
-    ID_US_1.C
-    ID_VH.C
-    ID_VL.C
-    MUNGE.C
-    WL_ACT1.C
-    WL_ACT2.C
-    WL_AGENT.C
-    WL_DEBUG.C
-    WL_DRAW.C
-    WL_GAME.C
-    WL_INTER.C
-    WL_MAIN.C
-    WL_MENU.C
-    WL_PLAY.C
-    WL_SCALE.C
-    WL_STATE.C
-    WL_TEXT.C
-    WOLFHACK.C
+    ID_IN.c
+    ID_PM.c
+    ID_SD.c
+    ID_US_1.c
+    ID_VH.c
+    ID_VL.c
+    WL_ACT1.c
+    WL_ACT2.c
+    WL_AGENT.c
+    WL_DEBUG.c
+    WL_DRAW.c
+    WL_GAME.c
+    WL_INTER.c
+    WL_MAIN.c
+    WL_MENU.c
+    WL_PLAY.c
+    WL_SCALE.c
+    WL_STATE.c
+    WL_TEXT.c
+    WOLFHACK.c
 )
 
 add_executable(test main.c filesystem.c)

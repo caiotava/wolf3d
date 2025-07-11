@@ -2,7 +2,6 @@
 
 #include "WL_DEF.H"
 #pragma hdrstop
-#include <BIOS.H>
 
 /*
 =============================================================================
@@ -165,9 +164,9 @@ void PicturePause (void)
 	MM_GetPtr (&buffer,64000);
 	for (p=0;p<4;p++)
 	{
-	   src = MK_FP(0xa000,displayofs);
+	   src = (byte*)&displayofs;
 	   dest = (byte *)buffer+p;
-	   VGAREADMAP(p);
+	   // VGAREADMAP(p);
 	   for (x=0;x<16000;x++,dest+=4)
 		   *dest = *src++;
 	}
@@ -184,19 +183,14 @@ void PicturePause (void)
 	}
 #endif
 
-	asm	mov	ax,0x13
-	asm	int	0x10
-
-	dest = MK_FP(0xa000,0);
-	_fmemcpy (dest,buffer,64000);
+	dest = 0;
+	memcpy (dest,buffer,64000);
 
 	VL_SetPalette (&gamepal);
-
 
 	IN_Shutdown ();
 
 	VW_WaitVBL(70);
-	bioskey(0);
 	VW_WaitVBL(70);
 	Quit (NULL);
 }
@@ -268,7 +262,7 @@ static	char	buf[10];
 
 		US_Print("\n Address: ");
 		addr = PM_GetPageAddress(i);
-		sprintf(buf,"0x%04x",(word)addr);
+		sprintf(buf,"0x%04x",(longword)addr);
 		US_Print(buf);
 
 		if (addr)
@@ -281,7 +275,7 @@ static	char	buf[10];
 				bufferofs += 32*SCREENWIDTH;
 				postx = 128;
 				postwidth = 1;
-				postsource = ((long)((unsigned)addr))<<16;
+				postsource = ((long)((unsigned long)addr))<<16;
 				for (x=0;x<64;x++,postx++,postsource+=64)
 				{
 					wallheight[postx] = 256;
@@ -314,7 +308,7 @@ static	char	buf[10];
 			}
 			else
 			{
-				byte *dp = (byte *)MK_FP(addr,0);
+				byte *dp = (byte *)addr;
 				for (j = 0;j < NumDigi;j++)
 				{
 					k = (DigiList[(j * 2) + 1] + (PMPageSize - 1)) / PMPageSize;

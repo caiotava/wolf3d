@@ -2,6 +2,8 @@
 
 // wolf compatability
 
+#include <stdbool.h>
+
 #define MS_Quit	Quit
 
 void Quit (char *error);

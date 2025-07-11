@@ -81,21 +81,21 @@ bool	CheckSight (objtype *ob);
 void SpawnNewObj (unsigned tilex, unsigned tiley, statetype *state)
 {
 	GetNewActor ();
-	new->state = state;
+	newObj->state = state;
 	if (state->tictime)
-		new->ticcount = US_RndT () % state->tictime;
+		newObj->ticcount = US_RndT () % state->tictime;
 	else
-		new->ticcount = 0;
+		newObj->ticcount = 0;
 
-	new->tilex = tilex;
-	new->tiley = tiley;
-	new->x = ((long)tilex<<TILESHIFT)+TILEGLOBAL/2;
-	new->y = ((long)tiley<<TILESHIFT)+TILEGLOBAL/2;
-	new->dir = nodir;
+	newObj->tilex = tilex;
+	newObj->tiley = tiley;
+	newObj->x = ((long)tilex<<TILESHIFT)+TILEGLOBAL/2;
+	newObj->y = ((long)tiley<<TILESHIFT)+TILEGLOBAL/2;
+	newObj->dir = nodir;
 
-	actorat[tilex][tiley] = new;
-	new->areanumber =
-		*(mapsegs[0] + farmapylookup[new->tiley]+new->tilex) - AREATILE;
+	actorat[tilex][tiley] = newObj;
+	newObj->areanumber =
+		*(mapsegs[0] + farmapylookup[newObj->tiley]+newObj->tilex) - AREATILE;
 }
 
 
@@ -153,7 +153,7 @@ void NewState (objtype *ob, statetype *state)
 
 #define CHECKDIAG(x,y)								\
 {                                                   \
-	temp=(unsigned)actorat[x][y];                   \
+	temp=(unsigned long)actorat[x][y];                   \
 	if (temp)                                       \
 	{                                               \
 		if (temp<256)                               \
@@ -165,7 +165,7 @@ void NewState (objtype *ob, statetype *state)
 
 #define CHECKSIDE(x,y)								\
 {                                                   \
-	temp=(unsigned)actorat[x][y];                   \
+	temp=(unsigned long)actorat[x][y];                   \
 	if (temp)                                       \
 	{                                               \
 		if (temp<128)                               \
@@ -535,11 +535,11 @@ void SelectChaseDir (objtype *ob)
 
 	if (US_RndT()>128) 	/*randomly determine direction of search*/
 	{
-		for (tdir=north;tdir<=west;tdir++)
+		for (size_t x = north; x  <=west; x++)
 		{
-			if (tdir!=turnaround)
+			if (x != turnaround)
 			{
-				ob->dir=tdir;
+				ob->dir = (dirtype)x;
 				if ( TryWalk(ob) )
 					return;
 			}
@@ -547,11 +547,11 @@ void SelectChaseDir (objtype *ob)
 	}
 	else
 	{
-		for (tdir=west;tdir>=north;tdir--)
+		for (int x = west; x >= north; x--)
 		{
-			if (tdir!=turnaround)
+			if (x != turnaround)
 			{
-			  ob->dir=tdir;
+			  ob->dir = (dirtype)x;
 			  if ( TryWalk(ob) )
 				return;
 			}
@@ -620,18 +620,18 @@ void SelectRunDir (objtype *ob)
 
 	if (US_RndT()>128) 	/*randomly determine direction of search*/
 	{
-		for (tdir=north;tdir<=west;tdir++)
+		for (size_t x =north; x <= west; x++)
 		{
-			ob->dir=tdir;
+			ob->dir = (dirtype)x;
 			if ( TryWalk(ob) )
 				return;
 		}
 	}
 	else
 	{
-		for (tdir=west;tdir>=north;tdir--)
+		for (size_t x = west; x >= north; x--)
 		{
-			ob->dir=tdir;
+			ob->dir = (dirtype)x;
 			if ( TryWalk(ob) )
 			  return;
 		}

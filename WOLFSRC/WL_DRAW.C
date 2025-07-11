@@ -1,7 +1,6 @@
 // WL_DRAW.C
 
 #include "WL_DEF.H"
-#include <DOS.H>
 #pragma hdrstop
 
 //#define DEBUGWALLS
@@ -43,6 +42,7 @@ unsigned	wallheight[MAXVIEWWIDTH];
 
 fixed	tileglobal	= TILEGLOBAL;
 fixed	mindist		= MINDIST;
+byte    *vbuf;
 
 
 //
@@ -111,7 +111,7 @@ int		horizwall[MAXWALLTILES],vertwall[MAXWALLTILES];
 */
 
 
-void AsmRefresh (void);			// in WL_DR_A.ASM
+void AsmRefresh (void) {}	// in WL_DR_A.ASM
 
 /*
 ============================================================================
@@ -138,46 +138,12 @@ void AsmRefresh (void);			// in WL_DR_A.ASM
 
 #pragma warn -rvl			// I stick the return value in with ASMs
 
+#define FIXED_SHIFT 16
+#define FIXED_ONE (1 << FIXED_SHIFT)
 fixed FixedByFrac (fixed a, fixed b)
 {
-//
-// setup
-//
-asm	mov	si,[WORD PTR b+2]	// sign of result = sign of fraction
-
-asm	mov	ax,[WORD PTR a]
-asm	mov	cx,[WORD PTR a+2]
-
-asm	or	cx,cx
-asm	jns	aok:				// negative?
-asm	neg	cx
-asm	neg	ax
-asm	sbb	cx,0
-asm	xor	si,0x8000			// toggle sign of result
-aok:
-
-//
-// multiply  cx:ax by bx
-//
-asm	mov	bx,[WORD PTR b]
-asm	mul	bx					// fraction*fraction
-asm	mov	di,dx				// di is low word of result
-asm	mov	ax,cx				//
-asm	mul	bx					// units*fraction
-asm add	ax,di
-asm	adc	dx,0
-
-//
-// put result dx:ax in 2's complement
-//
-asm	test	si,0x8000		// is the result negative?
-asm	jz	ansok:
-asm	neg	dx
-asm	neg	ax
-asm	sbb	dx,0
-
-ansok:;
-
+	int64_t result = (int64_t)a * (int64_t)b;
+	return (fixed)(result >> FIXED_SHIFT);
 }
 
 #pragma warn +rvl
@@ -252,13 +218,7 @@ void TransformActor (objtype *ob)
 //
 // calculate height (heightnumerator/(nx>>8))
 //
-	asm	mov	ax,[WORD PTR heightnumerator]
-	asm	mov	dx,[WORD PTR heightnumerator+2]
-	asm	idiv	[WORD PTR nx+1]			// nx>>8
-	asm	mov	[WORD PTR temp],ax
-	asm	mov	[WORD PTR temp+2],dx
-
-	ob->viewheight = temp;
+	ob->viewheight = (word)(heightnumerator/(nx>>8));
 }
 
 //==========================================================================
@@ -325,13 +285,13 @@ bool TransformTile (int tx, int ty, int *dispx, int *dispheight)
 //
 // calculate height (heightnumerator/(nx>>8))
 //
-	asm	mov	ax,[WORD PTR heightnumerator]
-	asm	mov	dx,[WORD PTR heightnumerator+2]
-	asm	idiv	[WORD PTR nx+1]			// nx>>8
-	asm	mov	[WORD PTR temp],ax
-	asm	mov	[WORD PTR temp+2],dx
-
-	*dispheight = temp;
+	if (nx<MINDIST)                 // too close, don't overflow the divide
+		*dispheight = 0;
+	else
+	{
+		*dispx = (short)(centerx + ny*scale/nx);
+		*dispheight = (short)(heightnumerator/(nx>>8));
+	}
 
 //
 // see if it should be grabbed
@@ -377,9 +337,7 @@ int	CalcHeight (void)
 	if (nx<mindist)
 		nx=mindist;			// don't let divide overflow
 
-	asm	mov	ax,[WORD PTR heightnumerator]
-	asm	mov	dx,[WORD PTR heightnumerator+2]
-	asm	idiv	[WORD PTR nx+1]			// nx>>8
+	return (int16_t)(heightnumerator / (nx >> 8));
 }
 
 
@@ -399,62 +357,70 @@ unsigned	postwidth;
 
 void ScalePost (void)		// VGA version
 {
-	asm	mov	ax,SCREENSEG
-	asm	mov	es,ax
+	int ywcount, yoffs, yw, yd, yendoffs;
+	byte col;
 
-	asm	mov	bx,[postx]
-	asm	shl	bx,1
-	asm	mov	bp,WORD PTR [wallheight+bx]		// fractional height (low 3 bits frac)
-	asm	and	bp,0xfff8				// bp = heightscaler*4
-	asm	shr	bp,1
-	asm	cmp	bp,[maxscaleshl2]
-	asm	jle	heightok
-	asm	mov	bp,[maxscaleshl2]
-heightok:
-	asm	add	bp,OFFSET fullscalefarcall
-	//
-	// scale a byte wide strip of wall
-	//
-	asm	mov	bx,[postx]
-	asm	mov	di,bx
-	asm	shr	di,2						// X in bytes
-	asm	add	di,[bufferofs]
+#ifdef USE_SKYWALLPARALLAX
+	if (tilehit == 16)
+	{
+		ScaleSkyPost();
+		return;
+	}
+#endif
 
-	asm	and	bx,3
-	asm	shl	bx,3						// bx = pixel*8+pixwidth
-	asm	add	bx,[postwidth]
+#ifdef USE_SHADING
+	byte *shade = GetShade(wallheight[postx],0);
+#endif
 
-	asm	mov	al,BYTE PTR [mapmasks1-1+bx]	// -1 because no widths of 0
-	asm	mov	dx,SC_INDEX+1
-	asm	out	dx,al						// set bit mask register
-	asm	lds	si,DWORD PTR [postsource]
-	asm	call DWORD PTR [bp]				// scale the line of pixels
+	ywcount = yd = wallheight[postx] >> 3;
+	if(yd <= 0) yd = 100;
 
-	asm	mov	al,BYTE PTR [ss:mapmasks2-1+bx]   // -1 because no widths of 0
-	asm	or	al,al
-	asm	jz	nomore
+	yoffs = (centery - ywcount) * bufferPitch;
+	if(yoffs < 0) yoffs = 0;
+	yoffs += postx;
 
-	//
-	// draw a second byte for vertical strips that cross two bytes
-	//
-	asm	inc	di
-	asm	out	dx,al						// set bit mask register
-	asm	call DWORD PTR [bp]				// scale the line of pixels
+	yendoffs = centery + ywcount - 1;
+	yw=TEXTURESIZE-1;
 
-	asm	mov	al,BYTE PTR [ss:mapmasks3-1+bx]	// -1 because no widths of 0
-	asm	or	al,al
-	asm	jz	nomore
-	//
-	// draw a third byte for vertical strips that cross three bytes
-	//
-	asm	inc	di
-	asm	out	dx,al						// set bit mask register
-	asm	call DWORD PTR [bp]				// scale the line of pixels
+	while(yendoffs >= viewheight)
+	{
+		ywcount -= TEXTURESIZE/2;
+		while(ywcount <= 0)
+		{
+			ywcount += yd;
+			yw--;
+		}
+		yendoffs--;
+	}
+	if(yw < 0) return;
 
-
-nomore:
-	asm	mov	ax,ss
-	asm	mov	ds,ax
+#ifdef USE_SHADING
+	col = shade[postsource[yw]];
+#else
+	col = postsource;
+#endif
+	yendoffs = yendoffs * bufferPitch + postx;
+	while(yoffs <= yendoffs)
+	{
+		vbuf[yendoffs] = col;
+		ywcount -= TEXTURESIZE/2;
+		if(ywcount <= 0)
+		{
+			do
+			{
+				ywcount += yd;
+				yw--;
+			}
+			while(ywcount <= 0);
+			if(yw < 0) break;
+#ifdef USE_SHADING
+			col = shade[postsource[yw]];
+#else
+			col = postsource;
+#endif
+		}
+		yendoffs -= bufferPitch;
+	}
 }
 
 void  FarScalePost (void)				// just so other files can call
@@ -500,7 +466,7 @@ void HitVertWall (void)
 		else
 		{
 			ScalePost ();
-			(unsigned)postsource = texture;
+			postsource = texture;
 			postwidth = 1;
 			postx = pixx;
 		}
@@ -529,8 +495,8 @@ void HitVertWall (void)
 		else
 			wallpic = vertwall[tilehit];
 
-		*( ((unsigned *)&postsource)+1) = (unsigned)PM_GetPage(wallpic);
-		(unsigned)postsource = texture;
+		// *( ((unsigned *)&postsource)+1) = (unsigned)PM_GetPage(wallpic);
+		postsource = texture;
 
 	}
 }
@@ -572,7 +538,7 @@ void HitHorizWall (void)
 		else
 		{
 			ScalePost ();
-			(unsigned)postsource = texture;
+			postsource = texture;
 			postwidth = 1;
 			postx = pixx;
 		}
@@ -601,8 +567,8 @@ void HitHorizWall (void)
 		else
 			wallpic = horizwall[tilehit];
 
-		*( ((unsigned *)&postsource)+1) = (unsigned)PM_GetPage(wallpic);
-		(unsigned)postsource = texture;
+		// *( ((unsigned *)&postsource)+1) = (unsigned)PM_GetPage(wallpic);
+		postsource = texture;
 	}
 
 }
@@ -639,7 +605,7 @@ void HitHorizDoor (void)
 		else
 		{
 			ScalePost ();
-			(unsigned)postsource = texture;
+			postsource = texture;
 			postwidth = 1;
 			postx = pixx;
 		}
@@ -670,8 +636,8 @@ void HitHorizDoor (void)
 			break;
 		}
 
-		*( ((unsigned *)&postsource)+1) = (unsigned)PM_GetPage(doorpage);
-		(unsigned)postsource = texture;
+		// *( ((unsigned *)&postsource)+1) = (unsigned)PM_GetPage(doorpage);
+		postsource = texture;
 	}
 }
 
@@ -707,7 +673,7 @@ void HitVertDoor (void)
 		else
 		{
 			ScalePost ();
-			(unsigned)postsource = texture;
+			postsource = texture;
 			postwidth = 1;
 			postx = pixx;
 		}
@@ -738,8 +704,8 @@ void HitVertDoor (void)
 			break;
 		}
 
-		*( ((unsigned *)&postsource)+1) = (unsigned)PM_GetPage(doorpage+1);
-		(unsigned)postsource = texture;
+		// *( ((unsigned *)&postsource)+1) = (unsigned)PM_GetPage(doorpage+1);
+		postsource = texture;
 	}
 }
 
@@ -786,7 +752,7 @@ void HitHorizPWall (void)
 		else
 		{
 			ScalePost ();
-			(unsigned)postsource = texture;
+			postsource = texture;
 			postwidth = 1;
 			postx = pixx;
 		}
@@ -803,8 +769,8 @@ void HitHorizPWall (void)
 
 		wallpic = horizwall[tilehit&63];
 
-		*( ((unsigned *)&postsource)+1) = (unsigned)PM_GetPage(wallpic);
-		(unsigned)postsource = texture;
+		// *( ((unsigned *)&postsource)+1) = (unsigned)PM_GetPage(wallpic);
+		postsource = texture;
 	}
 
 }
@@ -850,7 +816,7 @@ void HitVertPWall (void)
 		else
 		{
 			ScalePost ();
-			(unsigned)postsource = texture;
+			postsource = texture;
 			postwidth = 1;
 			postx = pixx;
 		}
@@ -867,8 +833,8 @@ void HitVertPWall (void)
 
 		wallpic = vertwall[tilehit&63];
 
-		*( ((unsigned *)&postsource)+1) = (unsigned)PM_GetPage(wallpic);
-		(unsigned)postsource = texture;
+		// *( ((unsigned *)&postsource)+1) = (unsigned)PM_GetPage(wallpic);
+		postsource = texture;
 	}
 
 }
@@ -969,46 +935,31 @@ unsigned vgaCeiling[]=
 
 void VGAClearScreen (void)
 {
- unsigned ceiling=vgaCeiling[gamestate.episode*10+mapon];
+	byte ceiling = vgaCeiling[(gamestate.episode * 10) + gamestate.mapon];
 
-  //
-  // clear the screen
-  //
-asm	mov	dx,SC_INDEX
-asm	mov	ax,SC_MAPMASK+15*256	// write through all planes
-asm	out	dx,ax
+	int y;
+	byte *src,*dest = vbuf;
+#ifdef USE_SHADING
+	for (y = 0; y < centery; y++, dest += bufferPitch)
+	{
+		src = GetShade((centery - y) << 3,0);
 
-asm	mov	dx,80
-asm	mov	ax,[viewwidth]
-asm	shr	ax,2
-asm	sub	dx,ax					// dx = 40-viewwidth/2
+		memset (dest,src[ceiling],viewwidth);
+	}
 
-asm	mov	bx,[viewwidth]
-asm	shr	bx,3					// bl = viewwidth/8
-asm	mov	bh,BYTE PTR [viewheight]
-asm	shr	bh,1					// half height
+	for (; y < viewheight; y++, dest += bufferPitch)
+	{
+		src = GetShade((y - centery) << 3,0);
 
-asm	mov	es,[screenseg]
-asm	mov	di,[bufferofs]
-asm	mov	ax,[ceiling]
+		memset (dest,src[0x19],viewwidth);
+	}
+#else
+	for (y = 0; y < centery; y++, dest += bufferPitch)
+		memset (dest,ceiling,viewwidth);
 
-toploop:
-asm	mov	cl,bl
-asm	rep	stosw
-asm	add	di,dx
-asm	dec	bh
-asm	jnz	toploop
-
-asm	mov	bh,BYTE PTR [viewheight]
-asm	shr	bh,1					// half height
-asm	mov	ax,0x1919
-
-bottomloop:
-asm	mov	cl,bl
-asm	rep	stosw
-asm	add	di,dx
-asm	dec	bh
-asm	jnz	bottomloop
+	for (; y < viewheight; y++, dest += bufferPitch)
+		memset (dest,0x19,viewwidth);
+#endif
 }
 
 //==========================================================================
@@ -1132,7 +1083,7 @@ void DrawScaleds (void)
 		|| ( *(visspot+64) && !*(tilespot+64) )
 		|| ( *(visspot+63) && !*(tilespot+63) ) )
 		{
-			obj->active = true;
+			obj->active = ac_yes;
 			TransformActor (obj);
 			if (!obj->viewheight)
 				continue;						// too close or far away
@@ -1338,17 +1289,17 @@ void	ThreeDRefresh (void)
 	int tracedir;
 
 // this wouldn't need to be done except for my debugger/video wierdness
-	outportb (SC_INDEX,SC_MAPMASK);
+	// outportb (SC_INDEX,SC_MAPMASK);
 
 //
 // clear out the traced array
 //
-asm	mov	ax,ds
-asm	mov	es,ax
-asm	mov	di,OFFSET spotvis
-asm	xor	ax,ax
-asm	mov	cx,2048							// 64*64 / 2
-asm	rep stosw
+// asm	mov	ax,ds
+// asm	mov	es,ax
+// asm	mov	di,OFFSET spotvis
+// asm	xor	ax,ax
+// asm	mov	cx,2048							// 64*64 / 2
+// asm	rep stosw
 
 	bufferofs += screenofs;
 
@@ -1380,15 +1331,15 @@ asm	rep stosw
 	bufferofs -= screenofs;
 	displayofs = bufferofs;
 
-	asm	cli
-	asm	mov	cx,[displayofs]
-	asm	mov	dx,3d4h		// CRTC address register
-	asm	mov	al,0ch		// start address high register
-	asm	out	dx,al
-	asm	inc	dx
-	asm	mov	al,ch
-	asm	out	dx,al   	// set the high byte
-	asm	sti
+	// asm	cli
+	// asm	mov	cx,[displayofs]
+	// asm	mov	dx,3d4h		// CRTC address register
+	// asm	mov	al,0ch		// start address high register
+	// asm	out	dx,al
+	// asm	inc	dx
+	// asm	mov	al,ch
+	// asm	out	dx,al   	// set the high byte
+	// asm	sti
 
 	bufferofs += SCREENSIZE;
 	if (bufferofs > PAGE3START)

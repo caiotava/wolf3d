@@ -4,6 +4,8 @@
 // Created Tue Jul 14 15:04:53 1992
 //
 /////////////////////////////////////////////////
+#ifndef AUDIOWL6_H
+#define	AUDIOWL6_H
 
 #define NUMSOUNDS		87
 #define NUMSNDCHUNKS		288
@@ -149,3 +151,5 @@ typedef enum {
 // Thanks for playing with MUSE!
 //
 /////////////////////////////////////////////////
+
+#endif

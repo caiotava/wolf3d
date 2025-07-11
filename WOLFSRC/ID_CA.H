@@ -1,3 +1,6 @@
+#ifndef IDCA_H
+#define IDCA_H
+
 // ID_CA.H
 //===========================================================================
 
@@ -5,6 +8,8 @@
 #define MAPPLANES	2
 
 #define UNCACHEGRCHUNK(chunk)	{MM_FreePtr(&grsegs[chunk]);grneeded[chunk]&=~ca_levelbit;}
+
+#include "WL_DEF.H"
 
 //===========================================================================
 
@@ -100,3 +105,5 @@ void CA_CacheMap (int mapnum);
 void CA_CacheMarks (void);
 
 void CA_CacheScreen (int chunk);
+
+#endif

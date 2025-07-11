@@ -1,3 +1,6 @@
+#ifndef WLDEF_H
+#define WLDEF_H
+
 //#define BETA
 #define YEAR	1992
 #define MONTH	9
@@ -18,6 +21,7 @@
 #include "F_SPEAR.H"
 #endif
 
+#include "FOREIGN.H"
 /*
 =============================================================================
 
@@ -65,6 +69,10 @@
 
 #define NUMBERCHARS	9
 
+#define TEXTURESHIFT    6
+#define TEXTURESIZE     (1 << TEXTURESHIFT)
+#define TEXTUREMASK     (TEXTURESIZE * (TEXTURESIZE - 1))
+#define STATUSBARPIC	86
 
 //----------------
 
@@ -598,13 +606,46 @@ typedef enum {
 	en_death
 } enemy_t;
 
+//--------------------
+//
+// thinking actor structure
+//
+//--------------------
+
+typedef struct objstruct
+{
+	activetype	active;
+	int			ticcount;
+	classtype	obclass;
+	struct statestruct	*state;
+
+	byte		flags;				//	FL_SHOOTABLE, etc
+
+	long		distance;			// if negative, wait for that door to open
+	dirtype		dir;
+
+	fixed 		x,y;
+	unsigned	tilex,tiley;
+	byte		areanumber;
+
+	int	 		viewx;
+	unsigned	viewheight;
+	fixed		transx,transy;		// in global coord
+
+	int 		angle;
+	int			hitpoints;
+	long		speed;
+
+	int			temp1,temp2,temp3;
+	struct		objstruct	*next,*prev;
+} objtype;
 
 typedef struct	statestruct
 {
 	bool	rotate;
 	int		shapenum;			// a shapenum of -1 means get from ob->temp1
 	int		tictime;
-	void	(*think) (),(*action) ();
+	void	(*think) (objtype *),(*action) (objtype *);
 	struct	statestruct	*next;
 } statetype;
 
@@ -631,49 +672,19 @@ typedef struct statstruct
 //
 //---------------------
 
+enum dooractiontypes
+{
+	dr_open,dr_closed,dr_opening,dr_closing,
+};
+
 typedef struct doorstruct
 {
 	byte	tilex,tiley;
 	bool	vertical;
 	byte	lock;
-	enum	{dr_open,dr_closed,dr_opening,dr_closing}	action;
+	enum dooractiontypes	action;
 	int		ticcount;
 } doorobj_t;
-
-
-//--------------------
-//
-// thinking actor structure
-//
-//--------------------
-
-typedef struct objstruct
-{
-	activetype	active;
-	int			ticcount;
-	classtype	obclass;
-	statetype	*state;
-
-	byte		flags;				//	FL_SHOOTABLE, etc
-
-	long		distance;			// if negative, wait for that door to open
-	dirtype		dir;
-
-	fixed 		x,y;
-	unsigned	tilex,tiley;
-	byte		areanumber;
-
-	int	 		viewx;
-	unsigned	viewheight;
-	fixed		transx,transy;		// in global coord
-
-	int 		angle;
-	int			hitpoints;
-	long		speed;
-
-	int			temp1,temp2,temp3;
-	struct		objstruct	*next,*prev;
-} objtype;
 
 
 #define NUMBUTTONS	8
@@ -771,13 +782,16 @@ extern	unsigned	viewangles;
 extern	unsigned	screenofs;
 extern	int		    viewwidth;
 extern	int			viewheight;
+extern  int			centery;
 extern	int			centerx;
 extern	int			shootdelta;
+extern  unsigned	screenPitch, bufferPitch;
 
 extern	int			dirangle[9];
 
 extern	bool         startgame,loadedgame,virtualreality;
 extern	int		mouseadjustment;
+extern  byte    *vbuf;
 //
 // math tables
 //
@@ -801,7 +815,6 @@ extern	char	configname[13];
 extern int argsCount;
 extern char **argsValues;
 
-
 void		HelpScreens (void);
 void		OrderingInfo (void);
 void		TEDDeath(void);
@@ -810,8 +823,8 @@ void 		CalcProjection (long focal);
 bool		SetViewSize (unsigned width, unsigned height);
 void		NewGame (int difficulty,int episode);
 void 		NewViewSize (int width);
-bool 	LoadTheGame(int file,int x,int y);
-bool		SaveTheGame(int file,int x,int y);
+bool 		LoadTheGame(PHYSFS_File *file,int x,int y);
+bool		SaveTheGame(PHYSFS_File *file,int x,int y);
 void 		ShowViewSize (int width);
 void		ShutdownId (void);
 
@@ -850,6 +863,7 @@ void RecordDemo (void);
 void DrawAllPlayBorder (void);
 void	DrawHighScores(void);
 void DrawAllPlayBorderSides (void);
+void A_DeathScream (objtype *ob);
 
 
 // JAB
@@ -1098,7 +1112,7 @@ extern	int			maxscale,maxscaleshl2;
 
 extern	bool	insetupscaling;
 
-long SetupScaling (int maxscaleheight);
+void SetupScaling (int maxscaleheight);
 void ScaleShape (int xcenter, int shapenum, unsigned height);
 void SimpleScaleShape (int xcenter, int shapenum, unsigned height);
 
@@ -1280,3 +1294,5 @@ extern	char	helpfilename[],endfilename[];
 
 extern	void	HelpScreens(void);
 extern	void	EndText(void);
+
+#endif

@@ -62,14 +62,14 @@ typedef	unsigned	int			word;
 typedef	unsigned	long		longword;
 typedef	byte *					Ptr;
 
-typedef	struct
-		{
-			int	x,y;
-		} Point;
-typedef	struct
-		{
-			Point	ul,lr;
-		} Rect;
+// typedef	struct
+// 		{
+// 			int	x,y;
+// 		} Point;
+// typedef	struct
+// 		{
+// 			Point	ul,lr;
+// 		} Rect;
 
 #define	nil	((void *)0)
 

@@ -1,3 +1,6 @@
+#ifndef MAPSWL6_H
+#define MAPSWL6_H
+
 ///////////////////////////////////////
 //
 // TED5 Map Header for WL6
@@ -7,6 +10,7 @@
 //
 // Map Names
 //
+
 typedef enum {
 		WOLF1_MAP1_MAP,          // 0
 		WOLF1_MAP2_MAP,          // 1
@@ -71,3 +75,5 @@ typedef enum {
 		MAP4L10PATH_MAP,         // 60
 		LASTMAP
 	     } mapnames;
+
+#endif

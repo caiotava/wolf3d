@@ -26,7 +26,10 @@
 //			window
 //
 
+#include <stdlib.h>
+#include <string.h>
 #include "ID_HEADS.H"
+#include "WL_DEF.H"
 
 #pragma	hdrstop
 
@@ -174,13 +177,13 @@ US_Startup(void)
 	if (US_Started)
 		return;
 
-	harderr(USL_HardError);	// Install the fatal error handler
+	//harderr(USL_HardError);	// Install the fatal error handler
 
 	US_InitRndT(true);		// Initialize the random number generator
 
-	for (i = 1;i < _argc;i++)
+	for (i = 1;i < argsCount;i++)
 	{
-		switch (US_CheckParm(_argv[i],ParmStrings2))
+		switch (US_CheckParm(argsValues[i],ParmStrings2))
 		{
 		case 0:
 			compatability = true;
@@ -192,13 +195,13 @@ US_Startup(void)
 	}
 
 	// Check for TED launching here
-	for (i = 1;i < _argc;i++)
+	for (i = 1;i < argsCount;i++)
 	{
-		n = US_CheckParm(_argv[i],ParmStrings);
+		n = US_CheckParm(argsValues[i],ParmStrings);
 		switch(n)
 		{
 		 case 0:
-		   tedlevelnum = atoi(_argv[i + 1]);
+		   tedlevelnum = atoi(argsValues[i + 1]);
 		   if (tedlevelnum >= 0)
 		     tedlevel = true;
 		   break;
@@ -326,8 +329,8 @@ void
 US_PrintUnsigned(longword n)
 {
 	char	buffer[32];
-
-	US_Print(ultoa(n,buffer,10));
+	snprintf(buffer, sizeof(buffer), "%lu", n);
+	US_Print(buffer);
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -340,7 +343,8 @@ US_PrintSigned(long n)
 {
 	char	buffer[32];
 
-	US_Print(ltoa(n,buffer,10));
+	snprintf(buffer, sizeof(buffer), "%ld", n);
+	US_Print(buffer);
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -605,15 +609,11 @@ US_LineInput(int x,int y,char *buf,char *def,bool escok,
 		if (cursorvis)
 			USL_XORICursor(x,y,s,cursor);
 
-	asm	pushf
-	asm	cli
 
 		sc = LastScan;
 		LastScan = sc_None;
 		c = LastASCII;
 		LastASCII = key_None;
-
-	asm	popf
 
 		switch (sc)
 		{
@@ -753,4 +753,12 @@ US_LineInput(int x,int y,char *buf,char *def,bool escok,
 
 	IN_ClearKeysDown();
 	return(result);
+}
+
+void US_InitRndT(bool randomize) {
+
+}
+
+int	US_RndT(void) {
+	return 0;
 }

@@ -124,7 +124,8 @@ void CheckWeaponChange (void)
 	for (i=wp_knife ; i<=gamestate.bestweapon ; i++)
 		if (buttonstate[bt_readyknife+i-wp_knife])
 		{
-			gamestate.weapon = gamestate.chosenweapon = i;
+			gamestate.weapon = (weapontype) i;
+			gamestate.chosenweapon = (weapontype) i;
 			DrawWeapon ();
 			return;
 		}
@@ -339,7 +340,7 @@ void	LatchNumber (int x, int y, int width, long number)
 	unsigned	length,c;
 	char	str[20];
 
-	ltoa (number,str,10);
+	snprintf(str,sizeof(str), "%ld", number);
 
 	length = strlen (str);
 
@@ -584,7 +585,7 @@ void GiveWeapon (int weapon)
 
 	if (gamestate.bestweapon<weapon)
 		gamestate.bestweapon = gamestate.weapon
-		= gamestate.chosenweapon = weapon;
+		= gamestate.chosenweapon = (weapontype) weapon;
 
 	DrawWeapon ();
 }
@@ -910,7 +911,7 @@ void ClipMove (objtype *ob, long xmove, long ymove)
 void VictoryTile (void)
 {
 #ifndef SPEAR
-	SpawnBJVictory ();
+	// SpawnBJVictory ();
 #endif
 
 	gamestate.victoryflag = true;
@@ -1100,7 +1101,7 @@ void Cmd_Use (void)
 void SpawnPlayer (int tilex, int tiley, int dir)
 {
 	player->obclass = playerobj;
-	player->active = true;
+	player->active = ac_yes;
 	player->tilex = tilex;
 	player->tiley = tiley;
 	player->areanumber =
@@ -1224,8 +1225,8 @@ void	GunAttack (objtype *ob)
 //
 // hit something
 //
-	dx = abs(closest->tilex - player->tilex);
-	dy = abs(closest->tiley - player->tiley);
+	dx = abs((int)(closest->tilex - player->tilex));
+	dy = abs((int)(closest->tiley - player->tiley));
 	dist = dx>dy ? dx:dy;
 
 	if (dist<2)

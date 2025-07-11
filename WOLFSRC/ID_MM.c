@@ -128,17 +128,17 @@ void 		MML_ClearBlock (void);
 
 bool MML_CheckForXMS (void)
 {
-	numUMBs = 0;
-
-asm {
-	mov	ax,0x4300
-	int	0x2f				// query status of installed diver
-	cmp	al,0x80
-	je	good
-	}
-
-	return false;
-good:
+// 	numUMBs = 0;
+//
+// asm {
+// 	mov	ax,0x4300
+// 	int	0x2f				// query status of installed diver
+// 	cmp	al,0x80
+// 	je	good
+// 	}
+//
+// 	return false;
+// good:
 	return true;
 }
 
@@ -155,45 +155,45 @@ good:
 
 void MML_SetupXMS (void)
 {
-	unsigned	base,size;
-
-asm	{
-	mov	ax,0x4310
-	int	0x2f
-	mov	[WORD PTR XMSaddr],bx
-	mov	[WORD PTR XMSaddr+2],es		// function pointer to XMS driver
-	}
-
-getmemory:
-asm	{
-	mov	ah,XMS_ALLOCUMB
-	mov	dx,0xffff					// try for largest block possible
-	call	[DWORD PTR XMSaddr]
-	or	ax,ax
-	jnz	gotone
-
-	cmp	bl,0xb0						// error: smaller UMB is available
-	jne	done;
-
-	mov	ah,XMS_ALLOCUMB
-	call	[DWORD PTR XMSaddr]		// DX holds largest available UMB
-	or	ax,ax
-	jz	done						// another error...
-	}
-
-gotone:
-asm	{
-	mov	[base],bx
-	mov	[size],dx
-	}
-	MML_UseSpace (base,size);
-	mminfo.XMSmem += size*16;
-	UMBbase[numUMBs] = base;
-	numUMBs++;
-	if (numUMBs < MAXUMBS)
-		goto getmemory;
-
-done:;
+// 	unsigned	base,size;
+//
+// asm	{
+// 	mov	ax,0x4310
+// 	int	0x2f
+// 	mov	[WORD PTR XMSaddr],bx
+// 	mov	[WORD PTR XMSaddr+2],es		// function pointer to XMS driver
+// 	}
+//
+// getmemory:
+// asm	{
+// 	mov	ah,XMS_ALLOCUMB
+// 	mov	dx,0xffff					// try for largest block possible
+// 	call	[DWORD PTR XMSaddr]
+// 	or	ax,ax
+// 	jnz	gotone
+//
+// 	cmp	bl,0xb0						// error: smaller UMB is available
+// 	jne	done;
+//
+// 	mov	ah,XMS_ALLOCUMB
+// 	call	[DWORD PTR XMSaddr]		// DX holds largest available UMB
+// 	or	ax,ax
+// 	jz	done						// another error...
+// 	}
+//
+// gotone:
+// asm	{
+// 	mov	[base],bx
+// 	mov	[size],dx
+// 	}
+// 	MML_UseSpace (base,size);
+// 	mminfo.XMSmem += size*16;
+// 	UMBbase[numUMBs] = base;
+// 	numUMBs++;
+// 	if (numUMBs < MAXUMBS)
+// 		goto getmemory;
+//
+// done:;
 }
 
 
@@ -214,9 +214,9 @@ void MML_ShutdownXMS (void)
 	{
 		base = UMBbase[i];
 
-asm	mov	ah,XMS_FREEUMB
-asm	mov	dx,[base]
-asm	call	[DWORD PTR XMSaddr]
+// asm	mov	ah,XMS_FREEUMB
+// asm	mov	dx,[base]
+// asm	call	[DWORD PTR XMSaddr]
 	}
 }
 
@@ -367,25 +367,25 @@ void MM_Startup (void)
 //
 // get all available near conventional memory segments
 //
-	length=coreleft();
+	// length=coreleft();
 	start = (void *)(nearheap = malloc(length));
 
-	length -= 16-(FP_OFF(start)&15);
+	// length -= 16-(start&15);
 	length -= SAVENEARHEAP;
 	seglength = length / 16;			// now in paragraphs
-	segstart = FP_SEG(start)+(FP_OFF(start)+15)/16;
+	// segstart = start+start+15/16;
 	MML_UseSpace (segstart,seglength);
 	mminfo.nearheap = length;
 
 //
 // get all available conventional memory segments
 //
-	length=farcoreleft();
-	start = farheap = farmalloc(length);
-	length -= 16-(FP_OFF(start)&15);
+	// length=farcoreleft();
+	start = farheap = malloc(length);
+	// length -= 16-(start&15);
 	length -= SAVEFARHEAP;
 	seglength = length / 16;			// now in paragraphs
-	segstart = FP_SEG(start)+(FP_OFF(start)+15)/16;
+	// segstart = start+start+15)/16;
 	MML_UseSpace (segstart,seglength);
 	mminfo.farheap = length;
 	mminfo.mainmem = mminfo.nearheap + mminfo.farheap;
@@ -415,7 +415,7 @@ void MM_Shutdown (void)
   if (!mmstarted)
 	return;
 
-  farfree (farheap);
+  // farfree (farheap);
   free (nearheap);
 //  MML_ShutdownXMS ();
 }
@@ -684,7 +684,7 @@ void MM_SortMem (void)
 			playing += STARTADLIBSOUNDS;
 			break;
 		}
-		MM_SetLock(&(memptr)audiosegs[playing],true);
+		MM_SetLock((memptr*)audiosegs[playing],true);
 	}
 
 
@@ -731,12 +731,12 @@ void MM_SortMem (void)
 					dest = start;
 					while (length > 0xf00)
 					{
-						movedata(source,0,dest,0,0xf00*16);
+						// movedata(source,0,dest,0,0xf00*16);
 						length -= 0xf00;
 						source += 0xf00;
 						dest += 0xf00;
 					}
-					movedata(source,0,dest,0,length*16);
+					// movedata(source,0,dest,0,length*16);
 
 					scan->start = start;
 					*(unsigned *)scan->useptr = start;
@@ -755,7 +755,7 @@ void MM_SortMem (void)
 		aftersort();
 
 	if (playing)
-		MM_SetLock(&(memptr)audiosegs[playing],false);
+		MM_SetLock((memptr*)audiosegs[playing],false);
 }
 
 
@@ -842,7 +842,7 @@ void MM_DumpData (void)
 		scan = mmhead;
 		while (scan)
 		{
-			owner = (unsigned)scan->useptr;
+			owner = (unsigned long) scan->useptr;
 
 			if (owner && owner<lowest && owner > oldlowest)
 			{

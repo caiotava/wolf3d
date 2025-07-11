@@ -170,19 +170,19 @@ void TrackWhichGame(int w);
 void DrawNewGameDiff(int w);
 void FixupCustom(int w);
 
-void CP_NewGame(void);
-void CP_Sound(void);
-int  CP_LoadGame(int quick);
-int  CP_SaveGame(int quick);
-void CP_Control(void);
-void CP_ChangeView(void);
+void CP_NewGame(int temp1);
+void CP_Sound(int temp1);
+void CP_LoadGame(int quick);
+void CP_SaveGame(int quick);
+void CP_Control(int temp1);
+void CP_ChangeView(int temp1);
 void CP_ExitOptions(void);
 void CP_Quit(void);
-void CP_ViewScores(void);
+void CP_ViewScores(int temp1);
 int  CP_EndGame(void);
 int  CP_CheckQuick(unsigned scancode);
-void CustomControls(void);
-void MouseSensitivity(void);
+void CustomControls(int temp1);
+void MouseSensitivity(int temp1);
 
 void CheckForEpisodes(void);
 

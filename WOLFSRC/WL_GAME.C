@@ -171,7 +171,7 @@ void PlaySoundLocGlobal(word s,fixed gx,fixed gy)
 {
 	SetSoundLoc(gx,gy);
 	SD_PositionSound(leftchannel,rightchannel);
-	if (SD_PlaySound(s))
+	if (SD_PlaySound((soundnames) s))
 	{
 		globalsoundx = gx;
 		globalsoundy = gy;
@@ -671,13 +671,13 @@ void SetupGameLevel (void)
 			{
 			// solid wall
 				tilemap[x][y] = tile;
-				(unsigned)actorat[x][y] = tile;
+				actorat[x][y] = (objtype*) tile;
 			}
 			else
 			{
 			// area floor
 				tilemap[x][y] = 0;
-				(unsigned)actorat[x][y] = 0;
+				actorat[x][y] = NULL;
 			}
 		}
 
@@ -734,7 +734,7 @@ void SetupGameLevel (void)
 			if (tile == AMBUSHTILE)
 			{
 				tilemap[x][y] = 0;
-				if ( (unsigned)actorat[x][y] == AMBUSHTILE)
+				if (actorat[x][y]->angle == AMBUSHTILE)
 					actorat[x][y] = NULL;
 
 				if (*map >= AREATILE)
@@ -1054,7 +1054,7 @@ void PlayDemo (int demonumber)
 #endif
 
 	CA_CacheGrChunk(dems[demonumber]);
-	demoptr = grsegs[dems[demonumber]];
+	demoptr = (char *) grsegs[dems[demonumber]];
 	MM_SetLock (&grsegs[dems[demonumber]],true);
 #else
 	demoname[4] = '0'+demonumber;
@@ -1066,7 +1066,7 @@ void PlayDemo (int demonumber)
 	NewGame (1,0);
 	gamestate.mapon = *demoptr++;
 	gamestate.difficulty = gd_hard;
-	length = *((unsigned *)demoptr)++;
+	// length = *((unsigned *)demoptr)++;
 	demoptr++;
 	lastdemoptr = demoptr-4+length;
 
@@ -1117,7 +1117,7 @@ void Died (void)
 	long	dx,dy;
 	int		iangle,curangle,clockwise,counter,change;
 
-	gamestate.weapon = -1;			// take away weapon
+	gamestate.weapon = (weapontype) -1;			// take away weapon
 	SD_PlaySound (PLAYERDEATHSND);
 //
 // swing around to face attacker
@@ -1442,7 +1442,7 @@ startplayloop:
 
 			#pragma warn -sus
 			#ifndef JAPAN
-			_fstrcpy(MainMenu[viewscores].string,STR_VS);
+			strcpy(MainMenu[viewscores].string,STR_VS);
 			#endif
 			MainMenu[viewscores].routine = CP_ViewScores;
 			#pragma warn +sus
@@ -1466,7 +1466,7 @@ startplayloop:
 
 			#pragma warn -sus
 			#ifndef JAPAN
-			_fstrcpy(MainMenu[viewscores].string,STR_VS);
+			strcpy(MainMenu[viewscores].string,STR_VS);
 			#endif
 			MainMenu[viewscores].routine = CP_ViewScores;
 			#pragma warn +sus
