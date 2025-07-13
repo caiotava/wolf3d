@@ -773,7 +773,6 @@ extern	char		str[80],str2[20];
 extern	int			tedlevelnum;
 extern	bool		tedlevel;
 extern	bool		nospr;
-extern	bool		IsA386;
 
 extern	byte		*scalermemory;
 

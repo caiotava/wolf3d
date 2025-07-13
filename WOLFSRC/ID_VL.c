@@ -111,7 +111,7 @@ void	VL_Shutdown (void)
 
 void	VL_SetVGAPlaneMode (void)
 {
-// asm	mov	ax,0x13
+// asm	mov	ax,0x13 // set the VGA mode to 13h that is 256 color but with a lower resolution.
 // asm	int	0x10
 	VL_DePlaneVGA ();
 	// VGAMAPMASK(15);
@@ -1066,12 +1066,3 @@ void VL_SizeTile8String (char *str, int *width, int *height)
 	*height = 8;
 	*width = 8*strlen(str);
 }
-
-
-
-
-
-
-
-
-

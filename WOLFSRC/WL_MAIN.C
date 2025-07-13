@@ -43,7 +43,6 @@ char            str[80],str2[20];
 int				tedlevelnum;
 bool         tedlevel;
 bool         nospr;
-bool         IsA386;
 int                     dirangle[9] = {0,ANGLES/8,2*ANGLES/8,3*ANGLES/8,4*ANGLES/8,
 	5*ANGLES/8,6*ANGLES/8,7*ANGLES/8,ANGLES};
 
@@ -221,46 +220,6 @@ void WriteConfig(void)
 		PHYSFS_close(file);
 	}
 }
-
-
-//===========================================================================
-
-
-/*
-========================
-=
-= Patch386
-=
-= Patch ldiv to use 32 bit instructions
-=
-========================
-*/
-
-extern void jabhack2(void) {}
-extern int  CheckIs386(void) {return 0;}
-
-char    *JHParmStrings[] = {"no386","\0"};
-void Patch386 (void)
-{
-	int     i;
-
-	for (i = 1;i < argsCount;i++)
-		if (US_CheckParm(argsValues[i],JHParmStrings) == 0)
-		{
-			IsA386 = false;
-			return;
-		}
-
-	if (CheckIs386())
-	{
-		IsA386 = true;
-		jabhack2();
-	}
-	else
-		IsA386 = false;
-}
-
-//===========================================================================
 
 /*
 =====================
@@ -1603,8 +1562,6 @@ int main (int argc, char *argv[])
 
 	CheckForEpisodes();
 
-	Patch386 ();
-
 	InitGame ();
 
 	DemoLoop();
@@ -1613,4 +1570,3 @@ int main (int argc, char *argv[])
 
 	return 0;
 }
-
