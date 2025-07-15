@@ -66,7 +66,7 @@ char			signon;
 
 void            Quit (char *error);
 
-bool			startgame,loadedgame,virtualreality;
+bool			startgame,loadedgame;
 int             mouseadjustment;
 
 char	configname[13]="CONFIG.";
@@ -690,13 +690,10 @@ void SignonScreen (void)                        // VGA version
 	VL_TestPaletteSet ();
 	VL_SetPalette (&gamepal);
 
-	if (!virtualreality)
-	{
-		VW_SetScreen(0x8000,0);
-		// VL_MungePic (&introscn,320,200);
-		// VL_MemToScreen (&introscn,320,200,0,0);
-		// VW_SetScreen(0,0);
-	}
+	VW_SetScreen(0x8000,0);
+	// VL_MungePic (&introscn,320,200);
+	// VL_MemToScreen (&introscn,320,200,0,0);
+	// VW_SetScreen(0,0);
 
 //
 // reclaim the memory from the linked in signon screen
@@ -1102,13 +1099,8 @@ void DoJukebox(void)
 
 void InitGame (void)
 {
-	int                     i,x,y;
-	unsigned        *blockstart;
-
-	if (MS_CheckParm ("virtual"))
-		virtualreality = true;
-	else
-		virtualreality = false;
+	int			i,x,y;
+	unsigned	*blockstart;
 
 	MM_Startup ();                  // so the signon screen can be freed
 
@@ -1177,8 +1169,7 @@ void InitGame (void)
 //
 // draw intro screen stuff
 //
-	if (!virtualreality)
-		IntroScreen ();
+	IntroScreen ();
 
 //
 // load in and lock down some basic chunks
@@ -1210,17 +1201,10 @@ close(profilehandle);
 // initialize variables
 //
 	InitRedShifts ();
-	if (!virtualreality)
-		FinishSignon();
+	FinishSignon();
 
 	displayofs = PAGE1START;
 	bufferofs = PAGE2START;
-
-	if (virtualreality)
-	{
-		NoWait = true;
-		// geninterrupt(0x60);
-	}
 }
 
 //===========================================================================
@@ -1542,23 +1526,6 @@ int main (int argc, char *argv[])
 {
 	argsCount = argc;
 	argsValues = argv;
-
-	int     i;
-
-#ifdef BETA
-	//
-	// THIS IS FOR BETA ONLY!
-	//
-	struct dosdate_t d;
-
-	_dos_getdate(&d);
-	if (d.year > YEAR ||
-		(d.month >= MONTH && d.day >= DAY))
-	{
-	 printf("Sorry, BETA-TESTING is over. Thanks for you help.\n");
-	 exit(1);
-	}
-#endif
 
 	CheckForEpisodes();
 

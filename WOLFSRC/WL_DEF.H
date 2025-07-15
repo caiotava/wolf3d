@@ -788,7 +788,7 @@ extern  unsigned	screenPitch, bufferPitch;
 
 extern	int			dirangle[9];
 
-extern	bool         startgame,loadedgame,virtualreality;
+extern	bool         startgame,loadedgame;
 extern	int		mouseadjustment;
 extern  byte    *vbuf;
 //
