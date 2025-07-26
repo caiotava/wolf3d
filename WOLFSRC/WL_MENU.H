@@ -1,6 +1,8 @@
 //
 // WL_MENU.H
 //
+#ifndef WL_MENU_H
+#define WL_MENU_H
 #ifdef SPEAR
 
 #define BORDCOLOR	0x99
@@ -229,3 +231,4 @@ void NonShareware(void);
 int GetYorN(int x,int y,int pic);
 
 
+#endif // WL_MENU_H

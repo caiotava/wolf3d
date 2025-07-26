@@ -33,9 +33,6 @@
 
 #pragma	hdrstop
 
-#pragma	warn	-pia
-
-
 //	Global variables
 		char		*abortprogram;
 		bool		NoWait;
@@ -45,8 +42,6 @@
 //	Internal variables
 #define	ConfigVersion	1
 
-static	char		*ParmStrings[] = {"TEDLEVEL","NOWAIT"},
-					*ParmStrings2[] = {"COMP","NOCOMP"};
 static	bool		US_Started;
 
 		bool		Button0,Button1,
@@ -78,8 +73,6 @@ static	bool		US_Started;
 //			from DOS.
 //
 ///////////////////////////////////////////////////////////////////////////
-#pragma	warn	-par
-#pragma	warn	-rch
 int
 USL_HardError(word errval,int ax,int bp,int si)
 {
@@ -160,9 +153,6 @@ USL_HardError(word errval,int ax,int bp,int si)
 // #undef	ABORT
 	return 1;
 }
-#pragma	warn	+par
-#pragma	warn	+rch
-
 
 ///////////////////////////////////////////////////////////////////////////
 //
@@ -177,40 +167,7 @@ US_Startup(void)
 	if (US_Started)
 		return;
 
-	//harderr(USL_HardError);	// Install the fatal error handler
-
 	US_InitRndT(true);		// Initialize the random number generator
-
-	for (i = 1;i < argsCount;i++)
-	{
-		switch (US_CheckParm(argsValues[i],ParmStrings2))
-		{
-		case 0:
-			compatability = true;
-			break;
-		case 1:
-			compatability = false;
-			break;
-		}
-	}
-
-	// Check for TED launching here
-	for (i = 1;i < argsCount;i++)
-	{
-		n = US_CheckParm(argsValues[i],ParmStrings);
-		switch(n)
-		{
-		 case 0:
-		   tedlevelnum = atoi(argsValues[i + 1]);
-		   if (tedlevelnum >= 0)
-		     tedlevel = true;
-		   break;
-
-		 case 1:
-		   NoWait = true;
-		   break;
-		}
-	}
 
 	US_Started = true;
 }
@@ -400,7 +357,7 @@ US_CPrintLine(char *s)
 
 	if (w > WindowW)
 		Quit("US_CPrintLine() - String exceeds width");
-	px = WindowX + ((WindowW - w) / 2);
+	px = (WindowX + (WindowW - w)) / 2;
 	py = PrintY;
 	USL_DrawString(s);
 	PrintY += h;
@@ -675,7 +632,6 @@ US_LineInput(int x,int y,char *buf,char *def,bool escok,
 			cursormoved = true;
 			break;
 
-		case 0x4c:	// Keypad 5
 		case sc_UpArrow:
 		case sc_DownArrow:
 		case sc_PgUp:
@@ -756,7 +712,6 @@ US_LineInput(int x,int y,char *buf,char *def,bool escok,
 }
 
 void US_InitRndT(bool randomize) {
-
 }
 
 int	US_RndT(void) {

@@ -18,12 +18,6 @@ unsigned	mirrorofs[MAXVIEWHEIGHT/2];
 
 fixed	psin, pcos;
 
-fixed FixedMul (fixed a, fixed b)
-{
-	return (a>>8)*(b>>8);
-}
-
-
 int		mr_rowofs;
 int		mr_count;
 int		mr_xstep;
@@ -183,4 +177,3 @@ void DrawPlanes (void)
 	for ( ; lastheight < height ; lastheight++)
 		DrawSpans (spanstart[lastheight], x-1, lastheight);
 }
-

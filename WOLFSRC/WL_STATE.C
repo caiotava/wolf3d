@@ -153,7 +153,7 @@ void NewState (objtype *ob, statetype *state)
 
 #define CHECKDIAG(x,y)								\
 {                                                   \
-	temp=(unsigned long)actorat[x][y];                   \
+	temp=(uintptr_t)actorat[x][y];                   \
 	if (temp)                                       \
 	{                                               \
 		if (temp<256)                               \
@@ -165,7 +165,7 @@ void NewState (objtype *ob, statetype *state)
 
 #define CHECKSIDE(x,y)								\
 {                                                   \
-	temp=(unsigned long)actorat[x][y];                   \
+	temp=(uintptr_t)actorat[x][y];                   \
 	if (temp)                                       \
 	{                                               \
 		if (temp<128)                               \
@@ -181,7 +181,7 @@ void NewState (objtype *ob, statetype *state)
 bool TryWalk (objtype *ob)
 {
 	int			doornum;
-	unsigned	temp;
+	uintptr_t	temp;
 
 	doornum = -1;
 
@@ -324,8 +324,7 @@ bool TryWalk (objtype *ob)
 	}
 
 
-	ob->areanumber =
-		*(mapsegs[0] + farmapylookup[ob->tiley]+ob->tilex) - AREATILE;
+	ob->areanumber = mapsegs[0][(ob->tiley << 6) + ob->tilex] - AREATILE;
 
 	ob->distance = TILEGLOBAL;
 	return true;
@@ -1476,5 +1475,3 @@ bool SightPlayer (objtype *ob)
 
 	return true;
 }
-
-

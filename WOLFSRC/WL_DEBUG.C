@@ -139,7 +139,7 @@ void PicturePause (void)
 	byte		p;
 	unsigned	x;
 	byte		*dest,*src;
-	memptr		buffer;
+	memptr		*buffer;
 
 	VW_ColorBorder (15);
 	FinishPaletteShifts ();
@@ -147,14 +147,13 @@ void PicturePause (void)
 	LastScan = 0;
 	while (!LastScan)
 	;
-	if (LastScan != sc_Enter)
+	if (LastScan != sc_Return)
 	{
 		VW_ColorBorder (0);
 		return;
 	}
 
 	VW_ColorBorder (1);
-	VW_SetScreen (0,0);
 //
 // vga stuff...
 //
@@ -186,7 +185,7 @@ void PicturePause (void)
 	dest = 0;
 	memcpy (dest,buffer,64000);
 
-	VL_SetPalette (&gamepal);
+	VL_SetPalette (gamepal, sizeof(gamepal));
 
 	IN_Shutdown ();
 
@@ -384,7 +383,7 @@ static	char	buf[10];
 		case sc_Escape:
 			done = true;
 			break;
-		case sc_Enter:
+		case sc_Return:
 			PM_GetPage(i);
 			break;
 		}
@@ -713,4 +712,3 @@ void ViewMap (void)
 	IN_ClearKeysDown ();
 }
 #endif
-

@@ -87,15 +87,15 @@ void SetupScaling (int maxscaleheight)
 // build the compiled scalers
 //
 	stepbytwo = viewheight/2;	// save space by double stepping
-	MM_GetPtr ((memptr*)work,20000);
+	MM_GetPtr ((memptr**)&work,20000);
 
 	for (i=1;i<=maxscaleheight;i++)
 	{
-		BuildCompScale (i*2,(memptr*)scaledirectory[i]);
+		// BuildCompScale (i*2,(memptr*)scaledirectory[i]);
 		if (i>=stepbytwo)
 			i+= 2;
 	}
-	MM_FreePtr ((memptr*)work);
+	MM_FreePtr ((memptr**)&work);
 
 //
 // compact memory and lock down scalers
@@ -221,7 +221,7 @@ unsigned BuildCompScale (int height, memptr *finalspot)
 	*code++ = 0xcb;
 
 	totalsize = (unsigned long)code;
-	MM_GetPtr (finalspot,totalsize);
+	MM_GetPtr (&finalspot,totalsize);
 	memcpy ((byte*)(*finalspot),(byte*)work,totalsize);
 
 	return totalsize;
@@ -245,154 +245,71 @@ extern	unsigned	maskword;
 
 byte	mask1,mask2,mask3;
 
-
-void ScaleLine (void)
+uint16_t ReadShort (void *ptr)
 {
-// asm	mov	cx,WORD PTR [linescale+2]
-// asm	mov	es,cx						// segment of scaler
-//
-// asm	mov bp,WORD PTR [linecmds]
-// asm	mov	dx,SC_INDEX+1				// to set SC_MAPMASK
-//
-// asm	mov	bx,[slinex]
-// asm	mov	di,bx
-// asm	shr	di,2						// X in bytes
-// asm	add	di,[bufferofs]
-// asm	and	bx,3
-// asm	shl	bx,3
-// asm	add	bx,[slinewidth]				// bx = (pixel*8+pixwidth)
-// asm	mov	al,BYTE [mapmasks3-1+bx]	// -1 because pixwidth of 1 is first
-// asm	mov	ds,WORD PTR [linecmds+2]
-// asm	or	al,al
-// asm	jz	notthreebyte				// scale across three bytes
-// asm	jmp	threebyte
-// notthreebyte:
-// asm	mov	al,BYTE PTR ss:[mapmasks2-1+bx]	// -1 because pixwidth of 1 is first
-// asm	or	al,al
-// asm	jnz	twobyte						// scale across two bytes
-//
-// //
-// // one byte scaling
-// //
-// asm	mov	al,BYTE PTR ss:[mapmasks1-1+bx]	// -1 because pixwidth of 1 is first
-// asm	out	dx,al						// set map mask register
-//
-// scalesingle:
-//
-// asm	mov	bx,[ds:bp]					// table location of rtl to patch
-// asm	or	bx,bx
-// asm	jz	linedone					// 0 signals end of segment list
-// asm	mov	bx,[es:bx]
-// asm	mov	dl,[es:bx]					// save old value
-// asm	mov	BYTE PTR es:[bx],OP_RETF	// patch a RETF in
-// asm	mov	si,[ds:bp+4]				// table location of entry spot
-// asm	mov	ax,[es:si]
-// asm	mov	WORD PTR ss:[linescale],ax	// call here to start scaling
-// asm	mov	si,[ds:bp+2]				// corrected top of shape for this segment
-// asm	add	bp,6						// next segment list
-//
-// asm	mov	ax,SCREENSEG
-// asm	mov	es,ax
-// asm	call ss:[linescale]				// scale the segment of pixels
-//
-// asm	mov	es,cx						// segment of scaler
-// asm	mov	BYTE PTR es:[bx],dl			// unpatch the RETF
-// asm	jmp	scalesingle					// do the next segment
-//
-//
-// //
-// // done
-// //
-// linedone:
-// asm	mov	ax,ss
-// asm	mov	ds,ax
-// return;
-//
-// //
-// // two byte scaling
-// //
-// twobyte:
-// asm	mov	ss:[mask2],al
-// asm	mov	al,BYTE PTR ss:[mapmasks1-1+bx]	// -1 because pixwidth of 1 is first
-// asm	mov	ss:[mask1],al
-//
-// scaledouble:
-//
-// asm	mov	bx,[ds:bp]					// table location of rtl to patch
-// asm	or	bx,bx
-// asm	jz	linedone					// 0 signals end of segment list
-// asm	mov	bx,[es:bx]
-// asm	mov	cl,[es:bx]					// save old value
-// asm	mov	BYTE PTR es:[bx],OP_RETF	// patch a RETF in
-// asm	mov	si,[ds:bp+4]				// table location of entry spot
-// asm	mov	ax,[es:si]
-// asm	mov	WORD PTR ss:[linescale],ax	// call here to start scaling
-// asm	mov	si,[ds:bp+2]				// corrected top of shape for this segment
-// asm	add	bp,6						// next segment list
-//
-// asm	mov	ax,SCREENSEG
-// asm	mov	es,ax
-// asm	mov	al,ss:[mask1]
-// asm	out	dx,al						// set map mask register
-// asm	call ss:[linescale]				// scale the segment of pixels
-// asm	inc	di
-// asm	mov	al,ss:[mask2]
-// asm	out	dx,al						// set map mask register
-// asm	call ss:[linescale]				// scale the segment of pixels
-// asm	dec	di
-//
-// asm	mov	es,WORD PTR ss:[linescale+2] // segment of scaler
-// asm	mov	BYTE PTR es:[bx],cl			// unpatch the RETF
-// asm	jmp	scaledouble					// do the next segment
-//
-//
-// //
-// // three byte scaling
-// //
-// threebyte:
-// asm	mov	ss:[mask3],al
-// asm	mov	al,BYTE PTR ss:[mapmasks2-1+bx]	// -1 because pixwidth of 1 is first
-// asm	mov	ss:[mask2],al
-// asm	mov	al,BYTE PTR ss:[mapmasks1-1+bx]	// -1 because pixwidth of 1 is first
-// asm	mov	ss:[mask1],al
-//
-// scaletriple:
-//
-// asm	mov	bx,[ds:bp]					// table location of rtl to patch
-// asm	or	bx,bx
-// asm	jz	linedone					// 0 signals end of segment list
-// asm	mov	bx,[es:bx]
-// asm	mov	cl,[es:bx]					// save old value
-// asm	mov	BYTE PTR es:[bx],OP_RETF	// patch a RETF in
-// asm	mov	si,[ds:bp+4]				// table location of entry spot
-// asm	mov	ax,[es:si]
-// asm	mov	WORD PTR ss:[linescale],ax	// call here to start scaling
-// asm	mov	si,[ds:bp+2]				// corrected top of shape for this segment
-// asm	add	bp,6						// next segment list
-//
-// asm	mov	ax,SCREENSEG
-// asm	mov	es,ax
-// asm	mov	al,ss:[mask1]
-// asm	out	dx,al						// set map mask register
-// asm	call ss:[linescale]				// scale the segment of pixels
-// asm	inc	di
-// asm	mov	al,ss:[mask2]
-// asm	out	dx,al						// set map mask register
-// asm	call ss:[linescale]				// scale the segment of pixels
-// asm	inc	di
-// asm	mov	al,ss:[mask3]
-// asm	out	dx,al						// set map mask register
-// asm	call ss:[linescale]				// scale the segment of pixels
-// asm	dec	di
-// asm	dec	di
-//
-// asm	mov	es,WORD PTR ss:[linescale+2] // segment of scaler
-// asm	mov	BYTE PTR es:[bx],cl			// unpatch the RETF
-// asm	jmp	scaletriple					// do the next segment
+	unsigned value;
+	byte     *work;
 
+	work = ptr;
+	value = work[0] | (work[1] << 8);
 
+	return value;
 }
 
+void ScaleLine (int16_t x, int16_t toppix, fixed fracstep, byte *linesrc, byte *linecmds, byte *shade)
+{
+	byte  *src,*dest;
+	int   color;
+	int   start,end,top;
+	int   startpix,endpix;
+	fixed frac;
+
+	for (end = ReadShort(linecmds) >> 1; end; end = ReadShort(linecmds) >> 1)
+	{
+		top = (int16_t)ReadShort(linecmds + 2);
+		start = ReadShort(linecmds + 4) >> 1;
+
+		frac = start * fracstep;
+
+		endpix = (frac >> FRACBITS) + toppix;
+
+		for (src = &linesrc[top + start]; start != end; start++, src++)
+		{
+			startpix = endpix;
+
+			if (startpix >= viewheight)
+				break;                          // off the bottom of the view area
+
+			frac += fracstep;
+			endpix = (frac >> FRACBITS) + toppix;
+
+			if (endpix < 0)
+				continue;                       // not into the view area
+
+			if (startpix < 0)
+				startpix = 0;                   // clip upper boundary
+
+			if (endpix > viewheight)
+				endpix = viewheight;            // clip lower boundary
+
+#ifdef USE_SHADING
+			color = shade[*src];
+#else
+			color = *src;
+#endif
+			dest = vbuf + ylookup[startpix] + x;
+
+			while (startpix < endpix)
+			{
+				*dest = color;
+				dest += bufferPitch;
+				startpix++;
+			}
+		}
+
+		linecmds += 6;                          // next segment list
+	}
+}
 
 /*
 =======================
@@ -418,180 +335,66 @@ void ScaleLine (void)
 
 static	long		longtemp;
 
-void ScaleShape (int xcenter, int shapenum, unsigned height)
+void ScaleShape (int xxcenter, int shapenum, unsigned xheight)
 {
-	t_compshape	*shape;
-	t_compscale *comptable;
-	unsigned	scale,srcx,stopx,tempx;
-	int			t;
-	unsigned	*cmdptr;
-	bool		leftvis,rightvis;
+	int         i;
+	compshape_t *shape;
+	byte        *linesrc,*linecmds;
+	byte        *shade = NULL;
+	int         height,toppix;
+	int         x1,x2,xcenter;
+	fixed       frac,fracstep;
 
+	height = xheight >> 3;        // low three bits are fractional
 
-	// shape = PM_GetSpritePage (shapenum);
+	if (!height)
+		return;                 // too close or far away
 
-	scale = height>>3;						// low three bits are fractional
-	if (!scale || scale>maxscale)
-		return;								// too close or far away
-	comptable = scaledirectory[scale];
+	linesrc = PM_GetSpritePage(shapenum);
+	shape = (compshape_t *)linesrc;
+#ifdef USE_SHADING
+	shade = GetShade(sprite->viewheight,sprite->flags);
+#endif
+	fracstep = ((int64_t)height << FRACBITS) / (int64_t)TEXTURESIZE/2;
+	frac = shape->leftpix * fracstep;
 
-	*(((unsigned *)&linescale)+1)=(unsigned long)comptable;	// seg of far call
-	*(((unsigned *)&linecmds)+1)=(unsigned long)shape;		// seg of shape
+	xcenter = xxcenter - height;
+	toppix = centery - height;
 
-//
-// scale to the left (from pixel 31 to shape->leftpix)
-//
-	srcx = 32;
-	slinex = xcenter;
-	stopx = shape->leftpix;
-	cmdptr = &shape->dataofs[31-stopx];
+	x2 = (frac >> FRACBITS) + xcenter;
 
-	while ( --srcx >=stopx && slinex>0)
+	for (i = shape->leftpix; i <= shape->rightpix; i++)
 	{
-		linecmds = &(*cmdptr--);
-		if ( !(slinewidth = comptable->width[srcx]) )
-			continue;
-
-		if (slinewidth == 1)
-		{
-			slinex--;
-			if (slinex<viewwidth)
-			{
-				if (wallheight[slinex] >= height)
-					continue;		// obscured by closer wall
-				ScaleLine ();
-			}
-			continue;
-		}
-
 		//
-		// handle multi pixel lines
+		// calculate edges of the shape
 		//
-		if (slinex>viewwidth)
-		{
-			slinex -= slinewidth;
-			slinewidth = viewwidth-slinex;
-			if (slinewidth<1)
-				continue;		// still off the right side
-		}
-		else
-		{
-			if (slinewidth>slinex)
-				slinewidth = slinex;
-			slinex -= slinewidth;
-		}
+		x1 = x2;
 
+		if (x1 >= viewwidth)
+			break;                // off the right side of the view area
 
-		leftvis = (wallheight[slinex] < height);
-		rightvis = (wallheight[slinex+slinewidth-1] < height);
+		frac += fracstep;
+		x2 = (frac >> FRACBITS) + xcenter;
 
-		if (leftvis)
+		if (x2 < 0)
+			continue;             // not into the view area
+
+		if (x1 < 0)
+			x1 = 0;               // clip left boundary
+
+		if (x2 > viewwidth)
+			x2 = viewwidth;       // clip right boundary
+
+		while (x1 < x2)
 		{
-			if (rightvis)
-				ScaleLine ();
-			else
+			if (wallheight[x1] < height)
 			{
-				while (wallheight[slinex+slinewidth-1] >= height)
-					slinewidth--;
-				ScaleLine ();
+				linecmds = &linesrc[shape->dataofs[i - shape->leftpix]];
+
+				ScaleLine (x1,toppix,fracstep,linesrc,linecmds,shade);
 			}
-		}
-		else
-		{
-			if (!rightvis)
-				continue;		// totally obscured
 
-			while (wallheight[slinex] >= height)
-			{
-				slinex++;
-				slinewidth--;
-			}
-			ScaleLine ();
-			break;			// the rest of the shape is gone
-		}
-	}
-
-
-//
-// scale to the right
-//
-	slinex = xcenter;
-	stopx = shape->rightpix;
-	if (shape->leftpix<31)
-	{
-		srcx = 31;
-		cmdptr = &shape->dataofs[32-shape->leftpix];
-	}
-	else
-	{
-		srcx = shape->leftpix-1;
-		cmdptr = &shape->dataofs[0];
-	}
-	slinewidth = 0;
-
-	while ( ++srcx <= stopx && (slinex+=slinewidth)<viewwidth)
-	{
-		linecmds = &(*cmdptr++);
-		if ( !(slinewidth = comptable->width[srcx]) )
-			continue;
-
-		if (slinewidth == 1)
-		{
-			if (slinex>=0 && wallheight[slinex] < height)
-			{
-				ScaleLine ();
-			}
-			continue;
-		}
-
-		//
-		// handle multi pixel lines
-		//
-		if (slinex<0)
-		{
-			if (slinewidth <= -slinex)
-				continue;		// still off the left edge
-
-			slinewidth += slinex;
-			slinex = 0;
-		}
-		else
-		{
-			if (slinex + slinewidth > viewwidth)
-				slinewidth = viewwidth-slinex;
-		}
-
-
-		leftvis = (wallheight[slinex] < height);
-		rightvis = (wallheight[slinex+slinewidth-1] < height);
-
-		if (leftvis)
-		{
-			if (rightvis)
-			{
-				ScaleLine ();
-			}
-			else
-			{
-				while (wallheight[slinex+slinewidth-1] >= height)
-					slinewidth--;
-				ScaleLine ();
-				break;			// the rest of the shape is gone
-			}
-		}
-		else
-		{
-			if (rightvis)
-			{
-				while (wallheight[slinex] >= height)
-				{
-					slinex++;
-					slinewidth--;
-				}
-				ScaleLine ();
-			}
-			else
-				continue;		// totally obscured
+			x1++;
 		}
 	}
 }
@@ -622,68 +425,49 @@ void ScaleShape (int xcenter, int shapenum, unsigned height)
 =======================
 */
 
-void SimpleScaleShape (int xcenter, int shapenum, unsigned height)
+void SimpleScaleShape (int dispx, int shapenum, unsigned xheight)
 {
-	t_compshape	*shape;
-	t_compscale *comptable;
-	unsigned	scale,srcx,stopx,tempx;
-	int			t;
-	unsigned	*cmdptr;
-	bool		leftvis,rightvis;
+	int         i;
+	compshape_t *shape;
+	byte        *linesrc,*linecmds;
+	byte        *shade = NULL;
+	int         height,toppix;
+	int         x1,x2,xcenter;
+	fixed       frac,fracstep;
 
+	height = xheight >> 1;
 
-	// shape = PM_GetSpritePage (shapenum);
+	linesrc = PM_GetSpritePage(shapenum);
+	shape = (compshape_t *)linesrc;
+#ifdef USE_SHADING
+	shade = GetShade(dispheight,FL_FULLBRIGHT);
+#endif
+	fracstep =((int64_t)height << FRACBITS) / (int64_t)TEXTURESIZE/2;
+	frac = shape->leftpix * fracstep;
 
-	scale = height>>1;
-	comptable = scaledirectory[scale];
+	xcenter = dispx - height;
+	toppix = centery - height;
 
-	*(((unsigned *)&linescale)+1)=(unsigned long)comptable;	// seg of far call
-	*(((unsigned *)&linecmds)+1)=(unsigned long)shape;		// seg of shape
+	x2 = (frac >> FRACBITS) + xcenter;
 
-//
-// scale to the left (from pixel 31 to shape->leftpix)
-//
-	srcx = 32;
-	slinex = xcenter;
-	stopx = shape->leftpix;
-	cmdptr = &shape->dataofs[31-stopx];
-
-	while ( --srcx >=stopx )
+	for (i = shape->leftpix; i <= shape->rightpix; i++)
 	{
-		linecmds = &(*cmdptr--);
-		if ( !(slinewidth = comptable->width[srcx]) )
-			continue;
+		//
+		// calculate edges of the shape
+		//
+		x1 = x2;
 
-		slinex -= slinewidth;
-		ScaleLine ();
-	}
+		frac += fracstep;
+		x2 = (frac >> FRACBITS) + xcenter;
 
+		while (x1 < x2)
+		{
+			linecmds = &linesrc[shape->dataofs[i - shape->leftpix]];
 
-//
-// scale to the right
-//
-	slinex = xcenter;
-	stopx = shape->rightpix;
-	if (shape->leftpix<31)
-	{
-		srcx = 31;
-		cmdptr = &shape->dataofs[32-shape->leftpix];
-	}
-	else
-	{
-		srcx = shape->leftpix-1;
-		cmdptr = &shape->dataofs[0];
-	}
-	slinewidth = 0;
+			ScaleLine (x1,toppix,fracstep,linesrc,linecmds,shade);
 
-	while ( ++srcx <= stopx )
-	{
-		linecmds = &(*cmdptr++);
-		if ( !(slinewidth = comptable->width[srcx]) )
-			continue;
-
-		ScaleLine ();
-		slinex+=slinewidth;
+			x1++;
+		}
 	}
 }
 
@@ -730,4 +514,3 @@ int			slinex,slinewidth;
 unsigned	*linecmds;
 long		linescale;
 unsigned	maskword;
-

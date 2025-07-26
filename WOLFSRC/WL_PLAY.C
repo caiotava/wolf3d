@@ -56,20 +56,20 @@ byte		update[UPDATESIZE];
 // control info
 //
 bool		mouseenabled,joystickenabled,joypadenabled,joystickprogressive;
-int			joystickport;
-int			dirscan[4] = {sc_UpArrow,sc_RightArrow,sc_DownArrow,sc_LeftArrow};
-int			buttonscan[NUMBUTTONS] =
+short		joystickport;
+short		dirscan[4] = {sc_UpArrow,sc_RightArrow,sc_DownArrow,sc_LeftArrow};
+short		buttonscan[NUMBUTTONS] =
 			{sc_Control,sc_Alt,sc_RShift,sc_Space,sc_1,sc_2,sc_3,sc_4};
-int			buttonmouse[4]={bt_attack,bt_strafe,bt_use,bt_nobutton};
-int			buttonjoy[4]={bt_attack,bt_strafe,bt_use,bt_run};
+short		buttonmouse[4]={bt_attack,bt_strafe,bt_use,bt_nobutton};
+short		buttonjoy[4]={bt_attack,bt_strafe,bt_use,bt_run};
 
-int			viewsize;
+short		viewsize;
 
 bool		buttonheld[NUMBUTTONS];
 
 bool		demorecord,demoplayback;
 char		*demoptr, *lastdemoptr;
-memptr		demobuffer;
+memptr		*demobuffer;
 
 //
 // curent user input
@@ -462,10 +462,16 @@ void PollControls (void)
 //
 	if (demoplayback)
 	{
-		while (TimeCount<lasttimecount+DEMOTICS)
-		;
-		TimeCount = lasttimecount + DEMOTICS;
+		uint32_t curtime = SDL_GetTicks();
 		lasttimecount += DEMOTICS;
+		int32_t timediff = (lasttimecount * 100) / 7 - curtime;
+		if (timediff > 0) {
+			SDL_Delay(timediff);
+		}
+
+		if (timediff < -2 * DEMOTICS) {
+			lasttimecount = curtime * 7 / 100;;
+		}
 		tics = DEMOTICS;
 	}
 	else if (demorecord)			// demo recording and playback needs
@@ -879,7 +885,7 @@ void InitActorList (void)
 //
 // init the actor lists
 //
-	for (i=0;i<MAXACTORS;i++)
+	for (i = 0; i < MAXACTORS; i++)
 	{
 		objlist[i].prev = &objlist[i+1];
 		objlist[i].next = NULL;
@@ -1059,13 +1065,11 @@ void StartMusic(void)
 #define WHITETICS		6
 
 
-byte	redshifts[NUMREDSHIFTS][768];
-byte	whiteshifts[NUMREDSHIFTS][768];
+SDL_Color	redshifts[NUMREDSHIFTS][768];
+byte		whiteshifts[NUMREDSHIFTS][768];
 
 int		damagecount,bonuscount;
 bool	palshifted;
-
-byte	gamepal;
 
 /*
 =====================
@@ -1077,42 +1081,46 @@ byte	gamepal;
 
 void InitRedShifts (void)
 {
-	byte	*workptr, *baseptr;
+	SDL_Color	*workptr, *baseptr;
 	int		i,j,delta;
 
 
 //
 // fade through intermediate frames
 //
-	for (i=1;i<=NUMREDSHIFTS;i++)
+	for (i=1; i<=NUMREDSHIFTS; i++)
 	{
-		workptr = (byte *)&redshifts[i-1][0];
-		baseptr = &gamepal;
+		workptr = redshifts[i-1];
+		baseptr = gamepal;
 
 		for (j=0;j<=255;j++)
 		{
-			delta = 64-*baseptr;
-			*workptr++ = *baseptr++ + delta * i / REDSTEPS;
-			delta = -*baseptr;
-			*workptr++ = *baseptr++ + delta * i / REDSTEPS;
-			delta = -*baseptr;
-			*workptr++ = *baseptr++ + delta * i / REDSTEPS;
+			delta = 256 - baseptr->r;
+			workptr->r = baseptr->r + delta * i / REDSTEPS;
+			delta = -baseptr->g;
+			workptr->g = baseptr->g + delta * i / REDSTEPS;
+			delta = -baseptr->b;
+			workptr->b = baseptr->b + delta * i / REDSTEPS;
+			baseptr++;
+			workptr++;
 		}
 	}
 
-	for (i=1;i<=NUMWHITESHIFTS;i++)
+	for (i=1; i<=NUMWHITESHIFTS; i++)
 	{
-		workptr = (byte *)&whiteshifts[i-1][0];
-		baseptr = &gamepal;
+		workptr = whiteshifts[i-1];
+		baseptr = gamepal;
 
-		for (j=0;j<=255;j++)
+		for (j=0; j <= 255; j++)
 		{
-			delta = 64-*baseptr;
-			*workptr++ = *baseptr++ + delta * i / WHITESTEPS;
-			delta = 62-*baseptr;
-			*workptr++ = *baseptr++ + delta * i / WHITESTEPS;
-			delta = 0-*baseptr;
-			*workptr++ = *baseptr++ + delta * i / WHITESTEPS;
+			delta = 256 - baseptr->r;
+			workptr->r = baseptr->r + delta * i / WHITESTEPS;
+			delta = 256 - baseptr->g;
+			workptr->g = baseptr->g + delta * i / WHITESTEPS;
+			delta = 0 - baseptr->b;
+			workptr->b = baseptr->b + delta * i / WHITESTEPS;
+			baseptr++;
+			workptr++;
 		}
 	}
 }
@@ -1201,19 +1209,19 @@ void UpdatePaletteShifts (void)
 	if (red)
 	{
 		VW_WaitVBL(1);
-		VL_SetPalette (redshifts[red-1]);
+		VL_SetPalette (redshifts[red-1], 256);
 		palshifted = true;
 	}
 	else if (white)
 	{
 		VW_WaitVBL(1);
-		VL_SetPalette (whiteshifts[white-1]);
+		VL_SetPalette (whiteshifts[white-1], 256);
 		palshifted = true;
 	}
 	else if (palshifted)
 	{
 		VW_WaitVBL(1);
-		VL_SetPalette (&gamepal);		// back to normal
+		VL_SetPalette (gamepal, sizeof(gamepal));		// back to normal
 		palshifted = false;
 	}
 }
@@ -1235,7 +1243,7 @@ void FinishPaletteShifts (void)
 	{
 		palshifted = 0;
 		VW_WaitVBL(1);
-		VL_SetPalette (&gamepal);
+		VL_SetPalette (gamepal, sizeof(gamepal));
 	}
 }
 

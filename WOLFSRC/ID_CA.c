@@ -32,14 +32,14 @@ loaded into the data segment
 
 typedef struct
 {
-  unsigned bit0,bit1;	// 0-255 is a character, > is a pointer to a node
+	uint16_t bit0,bit1;	// 0-255 is a character, > is a pointer to a node
 } huffnode;
 
 
 typedef struct
 {
-	unsigned	RLEWtag;
-	long		headeroffsets[100];
+	uint16_t	RLEWtag;
+	int32_t		headeroffsets[100];
 	byte		tileinfo[];
 } mapfiletype;
 
@@ -55,10 +55,10 @@ typedef struct
 byte 		*tinf;
 int			mapon;
 
-unsigned	*mapsegs[MAPPLANES];
+word		*mapsegs[MAPPLANES];
 maptype		*mapheaderseg[NUMMAPS];
 byte		*audiosegs[NUMSNDCHUNKS];
-void		*grsegs[NUMCHUNKS];
+byte		*grsegs[NUMCHUNKS];
 
 byte		grneeded[NUMCHUNKS];
 byte		ca_levelbit,ca_levelnum;
@@ -97,8 +97,8 @@ char extension[5],	// Need a string, not constant to change cache files
 
 void CA_CannotOpen(char *string);
 
-long		*grstarts;	// array of offsets in egagraph, -1 for sparse
-long		*audiostarts;	// array of offsets in audio / audiot
+memptr		*grstarts;	// array of offsets in egagraph, -1 for sparse
+memptr		*audiostarts;	// array of offsets in audio / audiot
 
 #ifdef GRHEADERLINKED
 huffnode	*grhuffman;
@@ -123,8 +123,7 @@ SDMode		oldsoundmode;
 
 
 
-void	CAL_CarmackExpand (unsigned *source, unsigned *dest,
-		unsigned length);
+void CAL_CarmackExpand (byte *source, word *dest, unsigned length);
 
 
 #ifdef THREEBYTEGRSTARTS
@@ -132,19 +131,16 @@ void	CAL_CarmackExpand (unsigned *source, unsigned *dest,
 //#define	GRFILEPOS(c) (*(long*)(((byte*)grstarts)+(c)*3)&0xffffff)
 long GRFILEPOS(int c)
 {
-	long value;
-	int	offset;
+	byte *offset = (byte*)grstarts + (c * 3);
 
-	offset = c*3;
+	long value = offset[0] | (offset[1] << 8) | (offset[2] << 16);
 
-	value = *(long*)(((byte*)grstarts)+offset);
-
-	value &= 0x00ffffffl;
-
-	if (value == 0xffffffl)
+	if (value == 0xffffff)
 		value = -1;
 
 	return value;
+
+	// return (long)grstarts[c];
 };
 #else
 #define FILEPOSSIZE	4
@@ -306,7 +302,7 @@ bool CA_WriteFile (char *filename, void *ptr, long length)
 ==========================
 */
 
-bool CA_LoadFile (char *filename, memptr *ptr)
+bool CA_LoadFile (char *filename, memptr **ptr)
 {
 	PHYSFS_File *handle = PHYSFS_openRead(filename);
 	long size;
@@ -316,7 +312,7 @@ bool CA_LoadFile (char *filename, memptr *ptr)
 
 	size = PHYSFS_fileLength(handle);
 	MM_GetPtr (ptr, size);
-	if (!CA_FarRead (handle, *ptr, size))
+	if (!CA_FarRead (handle, **ptr, size))
 	{
 		PHYSFS_close(handle);
 		return false;
@@ -394,6 +390,7 @@ void CAL_HuffExpand (byte *source, byte *dest, long length,huffnode *hufftable, 
 
 	end=dest+length;
 
+	int i = 1;
 	byte val = *source++;
 	byte mask = 1;
 	word nodeval;
@@ -406,6 +403,7 @@ void CAL_HuffExpand (byte *source, byte *dest, long length,huffnode *hufftable, 
 			nodeval = huffptr->bit1;
 		if(mask==0x80)
 		{
+			i++;
 			val = *source++;
 			mask = 1;
 		}
@@ -439,10 +437,11 @@ void CAL_HuffExpand (byte *source, byte *dest, long length,huffnode *hufftable, 
 #define NEARTAG	0xa7
 #define FARTAG	0xa8
 
-void CAL_CarmackExpand (unsigned *source, unsigned *dest, unsigned length)
+void CAL_CarmackExpand (byte *source, word *dest, unsigned length)
 {
-	unsigned	ch,chhigh,count,offset;
-	unsigned	*copyptr, *inptr, *outptr;
+	word	ch,chhigh,count,offset;
+	byte	*inptr;
+	word	*copyptr, *outptr;
 
 	length/=2;
 
@@ -564,9 +563,7 @@ long CA_RLEWCompress (unsigned *source, long length, unsigned *dest,
 ======================
 */
 
-void CA_RLEWexpand (unsigned *source, unsigned *dest,long length,
-  unsigned rlewtag)
-{
+void CA_RLEWexpand (word *source, word *dest, int32_t length, word rlewtag) {
 	word value,count,i;
 	word *end=dest+length/2;
 
@@ -616,16 +613,7 @@ void CA_RLEWexpand (unsigned *source, unsigned *dest,long length,
 void CAL_SetupGrFile (void)
 {
 	char fname[13];
-	memptr compseg;
-
-#ifdef GRHEADERLINKED
-
-	grhuffman = (huffnode *)&EGAdict;
-	grstarts = (long*)FP_SEG(&EGAhead);
-
-	CAL_OptimizeNodes (grhuffman);
-
-#else
+	memptr *compseg;
 
 //
 // load ???dict.ext (huffman dictionary for graphics files)
@@ -640,12 +628,12 @@ void CAL_SetupGrFile (void)
 
 	PHYSFS_readBytes(handle, &grhuffman, sizeof(grhuffman));
 	PHYSFS_close(handle);
-	CAL_OptimizeNodes (grhuffman);
+
 //
 // load the data offsets from ???head.ext
 //
 
-	MM_GetPtr ((memptr *)grstarts,(NUMCHUNKS+1)*FILEPOSSIZE);
+	MM_GetPtr (&grstarts,(NUMCHUNKS+1)*FILEPOSSIZE);
 
 	strcpy(fname,gheadname);
 	strcat(fname,extension);
@@ -654,11 +642,9 @@ void CAL_SetupGrFile (void)
 	if (handle == NULL)
 		CA_CannotOpen(fname);
 
-	CA_FarRead(handle, (memptr)grstarts, (NUMCHUNKS+1)*FILEPOSSIZE);
+	CA_FarRead(handle, (byte*)grstarts, (NUMCHUNKS+1)*FILEPOSSIZE);
 
 	PHYSFS_close(handle);
-
-#endif
 
 //
 // Open the graphics file, leaving it open until the game is finished
@@ -674,7 +660,7 @@ void CAL_SetupGrFile (void)
 //
 // load the pic and sprite headers into the arrays in the data segment
 //
-	MM_GetPtr((memptr*)pictable,NUMPICS*sizeof(pictabletype));
+	MM_GetPtr((memptr**)&pictable,NUMPICS*sizeof(pictabletype));
 	CAL_GetGrChunkLength(STRUCTPIC);		// position file pointer
 	MM_GetPtr(&compseg,chunkcomplen);
 	CA_FarRead (grhandle,compseg,chunkcomplen);
@@ -702,42 +688,27 @@ void CAL_SetupMapFile (void)
 //
 // load maphead.ext (offsets and tileinfo for map file)
 //
-#ifndef MAPHEADERLINKED
-	strcpy(fname,mheadname);
-	strcat(fname,extension);
+	strcpy_s(fname, sizeof(mheadname), mheadname);
+	strcat_s(fname, sizeof(fname), extension);
 
 	PHYSFS_File *handle = PHYSFS_openRead(fname);
 	if (handle == NULL)
 		CA_CannotOpen(fname);
 
 	length = PHYSFS_fileLength(handle);
-	MM_GetPtr ((memptr*)tinf,length);
+	MM_GetPtr ((memptr**)&tinf,length);
 	CA_FarRead(handle, tinf, length);
 	PHYSFS_close(handle);
-#else
-
-	tinf = (byte*)FP_SEG(&maphead);
-
-#endif
 
 //
 // open the data file
 //
-#ifdef CARMACIZED
-	strcpy(fname,"GAMEMAPS.");
-	strcat(fname,extension);
+	strcpy_s(fname, sizeof(fname), "GAMEMAPS.");
+	strcat_s(fname, sizeof(fname), extension);
 
 	maphandle = PHYSFS_openRead(fname);
 	if (maphandle == NULL)
 		CA_CannotOpen(fname);
-#else
-	strcpy(fname,mfilename);
-	strcat(fname,extension);
-
-	maphandle = PHYSFS_openRead(fname);
-	if (maphandle == NULL)
-		CA_CannotOpen(fname);
-#endif
 
 //
 // load all map header
@@ -748,8 +719,7 @@ void CAL_SetupMapFile (void)
 		if (pos<0)						// $FFFFFFFF start is a sparse map
 			continue;
 
-		MM_GetPtr((memptr*)mapheaderseg[i],sizeof(maptype));
-		MM_SetLock((memptr*)mapheaderseg[i],true);
+		MM_GetPtr((memptr**)&mapheaderseg[i],sizeof(maptype));
 		PHYSFS_seek(maphandle, pos);
 		CA_FarRead (maphandle,(memptr)mapheaderseg[i],sizeof(maptype));
 	}
@@ -757,11 +727,11 @@ void CAL_SetupMapFile (void)
 //
 // allocate space for 3 64*64 planes
 //
-	for (i=0;i<MAPPLANES;i++)
-	{
-		MM_GetPtr ((memptr*)mapsegs[i],64*64*2);
-		MM_SetLock ((memptr*)mapsegs[i],true);
+	for (i=0;i<MAPPLANES;i++) {
+		MM_GetPtr ((memptr**)&mapsegs[i],64*64*2);
 	}
+
+	//PHYSFS_close(maphandle);
 }
 
 
@@ -793,7 +763,7 @@ void CAL_SetupAudioFile (void)
 		CA_CannotOpen(fname);
 
 	length = PHYSFS_fileLength(handle);
-	MM_GetPtr ((memptr*)audiostarts,length);
+	MM_GetPtr (&audiostarts,length);
 	CA_FarRead(handle, (byte *)audiostarts, length);
 	PHYSFS_close(handle);
 #else
@@ -809,8 +779,8 @@ void CAL_SetupAudioFile (void)
 	strcpy(fname,afilename);
 	strcat(fname,extension);
 
-	PHYSFS_File *audioHandle = PHYSFS_openRead(fname);
-	if (audioHandle == NULL)
+	audiohandle = PHYSFS_openRead(fname);
+	if (audiohandle == NULL)
 		CA_CannotOpen(fname);
 #else
 	if (audioHandle = PHYSFS_openRead(fname) == NULL)
@@ -902,13 +872,13 @@ void CA_CacheAudioChunk (int chunk)
 // a larger buffer
 //
 	pos = audiostarts[chunk];
-	compressed = audiostarts[chunk+1]-pos;
+	compressed = (uintptr_t)audiostarts[chunk+1]-pos;
 
 	PHYSFS_seek(audiohandle, pos);
 
 #ifndef AUDIOHEADERLINKED
 
-	MM_GetPtr ((memptr*)audiosegs[chunk],compressed);
+	MM_GetPtr ((memptr**)&audiosegs[chunk],compressed);
 	if (mmerror)
 		return;
 
@@ -1049,12 +1019,32 @@ void CAL_ExpandGrChunk (int chunk, byte *source)
 // allocate final space, decompress it, and free bigbuffer
 // Sprites need to have shifts made and various other junk
 //
-	MM_GetPtr (&grsegs[chunk],expanded);
-	if (mmerror)
-		return;
+	MM_GetPtr ((memptr**)&grsegs[chunk],expanded);
+
 	CAL_HuffExpand (source,grsegs[chunk],expanded,grhuffman,false);
 }
 
+
+void CAL_DeplaneGrChunk (int chunk)
+{
+	int     i;
+	int16_t width,height;
+
+	if (chunk == STARTTILE8)
+	{
+		width = height = 8;
+
+		for (i = 0; i < NUMTILE8; i++)
+			VL_DePlaneVGA (grsegs[chunk] + (i * (width * height)),width,height);
+	}
+	else
+	{
+		width = pictable[chunk - STARTPICS].width;
+		height = pictable[chunk - STARTPICS].height;
+
+		VL_DePlaneVGA (grsegs[chunk],width,height);
+	}
+}
 
 /*
 ======================
@@ -1069,14 +1059,14 @@ void CAL_ExpandGrChunk (int chunk, byte *source)
 void CA_CacheGrChunk (int chunk)
 {
 	long	pos,compressed;
-	memptr	bigbufferseg;
+	memptr	*bigbufferseg;
 	byte	*source;
 	int		next;
 
 	grneeded[chunk] |= ca_levelbit;		// make sure it doesn't get removed
 	if (grsegs[chunk])
 	{
-		MM_SetPurge (&grsegs[chunk],0);
+		// MM_SetPurge (&grsegs[chunk],0);
 		return;							// allready in memory
 	}
 
@@ -1104,12 +1094,14 @@ void CA_CacheGrChunk (int chunk)
 	else
 	{
 		MM_GetPtr(&bigbufferseg,compressed);
-		MM_SetLock (&bigbufferseg,true);
 		CA_FarRead(grhandle,bigbufferseg,compressed);
 		source = bigbufferseg;
 	}
 
 	CAL_ExpandGrChunk (chunk,source);
+
+	if (chunk >= STARTPICS && chunk < STARTEXTERNS)
+		CAL_DeplaneGrChunk (chunk);
 
 	if (compressed>BUFFERSIZE)
 		MM_FreePtr(&bigbufferseg);
@@ -1132,7 +1124,7 @@ void CA_CacheGrChunk (int chunk)
 void CA_CacheScreen (int chunk)
 {
 	long	pos,compressed,expanded;
-	memptr	bigbufferseg;
+	memptr	*bigbufferseg;
 	byte	*source;
 	int		next;
 
@@ -1178,13 +1170,13 @@ void CA_CacheScreen (int chunk)
 
 void CA_CacheMap (int mapnum)
 {
-	long	pos,compressed;
-	int		plane;
-	memptr	*dest,bigbufferseg;
+	long		pos,compressed;
+	int			plane;
+	memptr		*dest,*buffer;
 	unsigned	size;
-	unsigned	*source;
+	word		*source;
 #ifdef CARMACIZED
-	memptr	buffer2seg;
+	memptr	*buffer2seg;
 	long	expanded;
 #endif
 
@@ -1203,14 +1195,8 @@ void CA_CacheMap (int mapnum)
 		dest = (memptr*)mapsegs[plane];
 
 		PHYSFS_seek(maphandle, pos);
-		if (compressed<=BUFFERSIZE)
-			source = bufferseg;
-		else
-		{
-			MM_GetPtr(&bigbufferseg,compressed);
-			MM_SetLock (&bigbufferseg,true);
-			source = bigbufferseg;
-		}
+		MM_GetPtr(&buffer,compressed);
+		source = (word*)buffer;
 
 		CA_FarRead(maphandle,(byte *)source,compressed);
 #ifdef CARMACIZED
@@ -1223,9 +1209,8 @@ void CA_CacheMap (int mapnum)
 		expanded = *source;
 		source++;
 		MM_GetPtr (&buffer2seg,expanded);
-		CAL_CarmackExpand (source, (unsigned *)buffer2seg,expanded);
-		CA_RLEWexpand (((unsigned *)buffer2seg)+1,*dest,size,
-		((mapfiletype*)tinf)->RLEWtag);
+		CAL_CarmackExpand ((byte*)source, (word*)buffer2seg,expanded);
+		CA_RLEWexpand ((word*)buffer2seg+1,(word*)dest,size, ((mapfiletype*)tinf)->RLEWtag);
 		MM_FreePtr (&buffer2seg);
 
 #else
@@ -1236,8 +1221,7 @@ void CA_CacheMap (int mapnum)
 		((mapfiletype*)tinf)->RLEWtag);
 #endif
 
-		if (compressed>BUFFERSIZE)
-			MM_FreePtr(&bigbufferseg);
+		MM_FreePtr(&buffer);
 	}
 }
 
@@ -1261,9 +1245,9 @@ void CA_UpLevel (void)
 	if (ca_levelnum==7)
 		Quit ("CA_UpLevel: Up past level 7!");
 
-	for (i=0;i<NUMCHUNKS;i++)
-		if (grsegs[i])
-			MM_SetPurge ((memptr*)grsegs[i],3);
+	// for (i=0;i<NUMCHUNKS;i++)
+	// 	if (grsegs[i])
+	// 		MM_SetPurge ((memptr*)grsegs[i],3);
 	ca_levelbit<<=1;
 	ca_levelnum++;
 }
@@ -1283,10 +1267,10 @@ void CA_UpLevel (void)
 
 void CA_DownLevel (void)
 {
-	if (!ca_levelnum)
-		Quit ("CA_DownLevel: Down past level 0!");
-	ca_levelbit>>=1;
-	ca_levelnum--;
+	// if (!ca_levelnum)
+	// 	Quit ("CA_DownLevel: Down past level 0!");
+	// ca_levelbit>>=1;
+	// ca_levelnum--;
 	CA_CacheMarks();
 }
 
@@ -1401,110 +1385,31 @@ void CA_SetAllPurge (void)
 
 void CA_CacheMarks (void)
 {
-	int 	i,next,numcache;
-	long	pos,endpos,nextpos,nextendpos,compressed;
-	long	bufferstart,bufferend;	// file position of general buffer
-	byte	*source;
-	memptr	bigbufferseg;
-
-	numcache = 0;
-//
-// go through and make everything not needed purgable
-//
-	for (i=0;i<NUMCHUNKS;i++)
-		if (grneeded[i]&ca_levelbit)
-		{
-			if (grsegs[i])					// its allready in memory, make
-				MM_SetPurge(&grsegs[i],0);	// sure it stays there!
-			else
-				numcache++;
-		}
-		else
-		{
-			if (grsegs[i])					// not needed, so make it purgeable
-				MM_SetPurge(&grsegs[i],3);
-		}
-
-	if (!numcache)			// nothing to cache!
-		return;
-
-
-//
-// go through and load in anything still needed
-//
-	bufferstart = bufferend = 0;		// nothing good in buffer now
-
-	for (i=0;i<NUMCHUNKS;i++)
-		if ( (grneeded[i]&ca_levelbit) && !grsegs[i])
-		{
-			pos = GRFILEPOS(i);
+	for (int i = STRUCTPIC + 1; i < NUMCHUNKS; i++)
+		if (!grsegs[i]) {
+			const long pos = GRFILEPOS(i);
 			if (pos<0)
 				continue;
 
-			next = i +1;
+			int next = i + 1;
 			while (GRFILEPOS(next) == -1)		// skip past any sparse tiles
 				next++;
 
-			compressed = GRFILEPOS(next)-pos;
-			endpos = pos+compressed;
+			const long compressed = GRFILEPOS(next) - pos;
 
-			if (compressed<=BUFFERSIZE)
-			{
-				if (bufferstart<=pos
-				&& bufferend>= endpos)
-				{
-				// data is allready in buffer
-					source = (byte*)bufferseg+(pos-bufferstart);
-				}
-				else
-				{
-				// load buffer with a new block from disk
-				// try to get as many of the needed blocks in as possible
-					while ( next < NUMCHUNKS )
-					{
-						while (next < NUMCHUNKS &&
-						!(grneeded[next]&ca_levelbit && !grsegs[next]))
-							next++;
-						if (next == NUMCHUNKS)
-							continue;
+			memptr	*buffer;
+			MM_GetPtr(&buffer, compressed);
 
-						nextpos = GRFILEPOS(next);
-						while (GRFILEPOS(++next) == -1)	// skip past any sparse tiles
-							;
-						nextendpos = GRFILEPOS(next);
-						if (nextpos - endpos <= MAXEMPTYREAD
-						&& nextendpos-pos <= BUFFERSIZE)
-							endpos = nextendpos;
-						else
-							next = NUMCHUNKS;			// read pos to posend
-					}
-
-					PHYSFS_seek(grhandle,pos);
-					CA_FarRead(grhandle,bufferseg,endpos-pos);
-					bufferstart = pos;
-					bufferend = endpos;
-					source = bufferseg;
-				}
-			}
-			else
-			{
-			// big chunk, allocate temporary buffer
-				MM_GetPtr(&bigbufferseg,compressed);
-				if (mmerror)
-					return;
-				MM_SetLock (&bigbufferseg,true);
-				PHYSFS_seek(grhandle,pos);
-				CA_FarRead(grhandle,bigbufferseg,compressed);
-				source = bigbufferseg;
-			}
+			PHYSFS_seek(grhandle, pos);
+			CA_FarRead(grhandle, (byte*)buffer, compressed);
+			byte *source = (byte *) buffer;
 
 			CAL_ExpandGrChunk (i,source);
-			if (mmerror)
-				return;
 
-			if (compressed>BUFFERSIZE)
-				MM_FreePtr(&bigbufferseg);
+			if (i >= STARTPICS && i < STARTEXTERNS)
+				CAL_DeplaneGrChunk (i);
 
+			MM_FreePtr(&buffer);
 		}
 }
 

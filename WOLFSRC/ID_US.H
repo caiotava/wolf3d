@@ -26,7 +26,7 @@
 typedef	struct
 		{
 			char	name[MaxHighName + 1];
-			long	score;
+			int32_t	score;
 			word	completed,episode;
 		} HighScore;
 

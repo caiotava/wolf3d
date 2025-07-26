@@ -27,6 +27,7 @@ add_executable(wolf3d
     WL_STATE.c
     WL_TEXT.c
     WOLFHACK.c
+    signon.c
 )
 
 add_executable(test main.c filesystem.c)

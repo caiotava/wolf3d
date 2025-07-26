@@ -57,7 +57,6 @@
 #define	readstat()	inportb(alFMStatus)
 
 //	Imports from ID_SD_A.ASM
-extern	void			SDL_SetDS(void) {}
 extern	void			SDL_IndicatePC(bool on) {}
 extern	void 			SDL_t0ExtremeAsmService(void) {}
 extern	void			SDL_t0FastAsmService(void) {}
@@ -1232,7 +1231,7 @@ SD_SetDigiDevice(SDSMode mode)
 void
 SDL_SetupDigi(void)
 {
-	memptr	list;
+	memptr	*list;
 	word	*p,
 			pg;
 	int		i;
@@ -1250,7 +1249,7 @@ SDL_SetupDigi(void)
 		pg += (p[1] + (PMPageSize - 1)) / PMPageSize;
 	}
 	PM_UnlockMainMem();
-	MM_GetPtr((memptr *)&DigiList,i * sizeof(word) * 2);
+	MM_GetPtr((memptr**)&DigiList,i * sizeof(word) * 2);
 	memcpy((void *)DigiList,(void *)list,i * sizeof(word) * 2);
 	MM_FreePtr(&list);
 	NumDigi = i;
@@ -1870,8 +1869,6 @@ SD_Startup(void)
 	if (SD_Started)
 		return;
 
-	SDL_SetDS();
-
 	ssIsTandy = false;
 	ssNoCheck = false;
 	alNoCheck = false;
@@ -1914,8 +1911,6 @@ SD_Startup(void)
 #endif
 
 	SoundUserHook = 0;
-
-	// t0OldService = getvect(8);	// Get old timer 0 ISR
 
 	LocalTime = TimeCount = alTimeCount = 0;
 

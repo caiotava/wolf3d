@@ -10,19 +10,19 @@
 
 //	Main Mem specific variables
 	bool			MainPresent;
-	memptr			MainMemPages[PMMaxMainMem];
+	memptr*			MainMemPages[PMMaxMainMem];
 	PMBlockAttr		MainMemUsed[PMMaxMainMem];
 	int				MainPagesAvail;
 
 //	EMS specific variables
 	bool			EMSPresent;
-	word			EMSAvail,EMSPagesAvail,EMSHandle,
+	word			EMSPagesAvail,EMSHandle,
 					EMSPageFrame,EMSPhysicalPage;
 	EMSListStruct	EMSList[EMSFrameCount];
 
 //	XMS specific variables
 	bool			XMSPresent;
-	word			XMSAvail,XMSPagesAvail,XMSHandle;
+	word			XMSPagesAvail,XMSHandle;
 	longword		XMSDriver;
 	int				XMSProtectPage = -1;
 
@@ -41,10 +41,7 @@
 					MainPagesUsed,
 					PMNumBlocks;
 	long			PMFrameCount;
-	PageListStruct	*PMPages,
-					*PMSegPages;
-
-static	char		*ParmStrings[] = {"nomain","noems","noxms","\0"};
+	PageListStruct	*PMPages;
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -66,177 +63,6 @@ PML_MapEMS(word logical,word physical)
 //
 // 	if (_AH)
 // 		Quit("PML_MapEMS: Page mapping failed");
-}
-
-//
-//	PML_StartupEMS() - Sets up EMS for Page Mgr's use
-//		Checks to see if EMS driver is present
-//      Verifies that EMS hardware is present
-//		Make sure that EMS version is 3.2 or later
-//		If there's more than our minimum (2 pages) available, allocate it (up
-//			to the maximum we need)
-//
-
-	char	EMMDriverName[9] = "EMMXXXX0";
-
-bool
-PML_StartupEMS(void)
-{
-// 	int		i;
-// 	long	size;
-//
-// 	EMSPresent = false;			// Assume that we'll fail
-// 	EMSAvail = 0;
-//
-// 	_DX = (word)EMMDriverName;
-// 	_AX = 0x3d00;
-// 	geninterrupt(0x21);			// try to open EMMXXXX0 device
-// asm	jnc	gothandle
-// 	goto error;
-//
-// gothandle:
-// 	_BX = _AX;
-// 	_AX = 0x4400;
-// 	geninterrupt(0x21);			// get device info
-// asm	jnc	gotinfo;
-// 	goto error;
-//
-// gotinfo:
-// asm	and	dx,0x80
-// 	if (!_DX)
-// 		goto error;
-//
-// 	_AX = 0x4407;
-// 	geninterrupt(0x21);			// get status
-// asm	jc	error
-// 	if (!_AL)
-// 		goto error;
-//
-// 	_AH = 0x3e;
-// 	geninterrupt(0x21);			// close handle
-//
-// 	_AH = EMS_STATUS;
-// 	geninterrupt(EMS_INT);
-// 	if (_AH)
-// 		goto error;				// make sure EMS hardware is present
-//
-// 	_AH = EMS_VERSION;
-// 	geninterrupt(EMS_INT);
-// 	if (_AH || (_AL < 0x32))	// only work on EMS 3.2 or greater (silly, but...)
-// 		goto error;
-//
-// 	_AH = EMS_GETFRAME;
-// 	geninterrupt(EMS_INT);
-// 	if (_AH)
-// 		goto error;				// find the page frame address
-// 	EMSPageFrame = _BX;
-//
-// 	_AH = EMS_GETPAGES;
-// 	geninterrupt(EMS_INT);
-// 	if (_AH)
-// 		goto error;
-// 	if (_BX < 2)
-// 		goto error;         	// Require at least 2 pages (32k)
-// 	EMSAvail = _BX;
-//
-// 	// Don't hog all available EMS
-// 	size = EMSAvail * (long)EMSPageSize;
-// 	if (size - (EMSPageSize * 2) > (ChunksInFile * (long)PMPageSize))
-// 	{
-// 		size = (ChunksInFile * (long)PMPageSize) + EMSPageSize;
-// 		EMSAvail = size / EMSPageSize;
-// 	}
-//
-// 	_AH = EMS_ALLOCPAGES;
-// 	_BX = EMSAvail;
-// 	geninterrupt(EMS_INT);
-// 	if (_AH)
-// 		goto error;
-// 	EMSHandle = _DX;
-//
-// 	mminfo.EMSmem += EMSAvail * (long)EMSPageSize;
-//
-// 	// Initialize EMS mapping cache
-// 	for (i = 0;i < EMSFrameCount;i++)
-// 		EMSList[i].baseEMSPage = -1;
-//
-// 	EMSPresent = true;			// We have EMS
-//
-// error:
-// 	return(EMSPresent);
-	return true;
-}
-
-//
-//	PML_ShutdownEMS() - If EMS was used, deallocate it
-//
-void
-PML_ShutdownEMS(void)
-{
-	// if (EMSPresent)
-	// {
-	// asm	mov	ah,EMS_FREEPAGES
-	// asm	mov	dx,[EMSHandle]
-	// asm	int	EMS_INT
-	// 	if (_AH)
-	// 		Quit ("PML_ShutdownEMS: Error freeing EMS");
-	// }
-}
-
-/////////////////////////////////////////////////////////////////////////////
-//
-//	XMS Management code
-//
-/////////////////////////////////////////////////////////////////////////////
-
-//
-//	PML_StartupXMS() - Starts up XMS for the Page Mgr's use
-//		Checks for presence of an XMS driver
-//		Makes sure that there's at least a page of XMS available
-//		Allocates any remaining XMS (rounded down to the nearest page size)
-//
-bool
-PML_StartupXMS(void)
-{
-	// XMSPresent = false;					// Assume failure
-	// XMSAvail = 0;
-
-// asm	mov	ax,0x4300
-// asm	int	XMS_INT         				// Check for presence of XMS driver
-// 	if (_AL != 0x80)
-// 		goto error;
-//
-//
-// asm	mov	ax,0x4310
-// asm	int	XMS_INT							// Get address of XMS driver
-// asm	mov	[WORD PTR XMSDriver],bx
-// asm	mov	[WORD PTR XMSDriver+2],es		// function pointer to XMS driver
-//
-// 	XMS_CALL(XMS_QUERYFREE);			// Find out how much XMS is available
-// 	XMSAvail = _AX;
-// 	if (!_AX)				// AJR: bugfix 10/8/92
-// 		goto error;
-//
-// 	XMSAvail &= ~(PMPageSizeKB - 1);	// Round off to nearest page size
-// 	if (XMSAvail < (PMPageSizeKB * 2))	// Need at least 2 pages
-// 		goto error;
-//
-// 	_DX = XMSAvail;
-// 	XMS_CALL(XMS_ALLOC);				// And do the allocation
-// 	XMSHandle = _DX;
-//
-// 	if (!_AX)				// AJR: bugfix 10/8/92
-// 	{
-// 		XMSAvail = 0;
-// 		goto error;
-// 	}
-//
-// 	mminfo.XMSmem += XMSAvail * 1024;
-//
-// 	XMSPresent = true;
-// error:
-// 	return(XMSPresent);
-	return true;
 }
 
 //
@@ -329,11 +155,11 @@ PML_ShutdownXMS(void)
 void
 PM_SetMainMemPurge(int level)
 {
-	int	i;
-
-	for (i = 0;i < PMMaxMainMem;i++)
-		if (MainMemPages[i])
-			MM_SetPurge(&MainMemPages[i],level);
+	// int	i;
+	//
+	// for (i = 0;i < PMMaxMainMem;i++)
+	// 	if (MainMemPages[i])
+	// 		MM_SetPurge(&MainMemPages[i],level);
 }
 
 //
@@ -396,7 +222,7 @@ PM_CheckMainMem(void)
 			if (!allocfailed)
 			{
 				MM_BombOnError(false);
-				MM_GetPtr(p,PMPageSize);		// Try to reallocate
+				MM_GetPtr(&p,PMPageSize);		// Try to reallocate
 				if (mmerror)					// If it failed,
 					allocfailed = true;			//  don't try any more allocations
 				else							// If it worked,
@@ -422,11 +248,10 @@ void
 PML_StartupMainMem(void)
 {
 	int		i,n;
-	memptr	*p;
+	memptr	**p;
 
 	MainPagesAvail = 0;
-	MM_BombOnError(false);
-	for (i = 0,p = MainMemPages;i < PMMaxMainMem;i++,p++)
+	for (i = 0,p = (memptr**)&MainMemPages; i < PMMaxMainMem; i++, p++)
 	{
 		MM_GetPtr(p,PMPageSize);
 		if (mmerror)
@@ -435,11 +260,15 @@ PML_StartupMainMem(void)
 		MainPagesAvail++;
 		MainMemUsed[i] = pmba_Allocated;
 	}
-	MM_BombOnError(true);
-	if (mmerror)
+
+	if (mmerror) {
 		mmerror = false;
-	if (MainPagesAvail < PMMinMainMem)
+	}
+
+	if (MainPagesAvail < PMMinMainMem) {
 		Quit("PM_SetupMainMem: Not enough main memory");
+	}
+
 	MainPresent = true;
 }
 
@@ -454,7 +283,7 @@ PML_ShutdownMainMem(void)
 	memptr	*p;
 
 	// DEBUG - mark pages as unallocated & decrease page count as appropriate
-	for (i = 0,p = MainMemPages;i < PMMaxMainMem;i++,p++)
+	for (i = 0,p = MainMemPages;i < PMMaxMainMem-1;i++,p++)
 		if (*p)
 			MM_FreePtr(p);
 }
@@ -505,15 +334,13 @@ PML_OpenPageFile(void)
 
 	// Allocate and clear the page list
 	PMNumBlocks = ChunksInFile;
-	MM_GetPtr((memptr*)PMSegPages,sizeof(PageListStruct) * PMNumBlocks);
-	MM_SetLock((memptr*)PMSegPages,true);
-	PMPages = (PageListStruct *)PMSegPages;
+	MM_GetPtr((memptr**)&PMPages,sizeof(PageListStruct) * PMNumBlocks);
 	memset(PMPages,0,sizeof(PageListStruct) * PMNumBlocks);
 
 	// Read in the chunk offsets
 	size = sizeof(longword) * ChunksInFile;
-	MM_GetPtr(&buf,size);
-	if (!CA_FarRead(PageFile,(byte *)buf,size))
+	MM_GetPtr((memptr**)&buf, size);
+	if (!CA_FarRead(PageFile, buf, size))
 		Quit("PML_OpenPageFile: Offset read failed");
 	offsetptr = (longword *)buf;
 	for (i = 0,page = PMPages;i < ChunksInFile;i++,page++)
@@ -523,7 +350,7 @@ PML_OpenPageFile(void)
 	// Read in the chunk lengths
 	size = sizeof(word) * ChunksInFile;
 	MM_GetPtr(&buf,size);
-	if (!CA_FarRead(PageFile,(byte *)buf,size))
+	if (!CA_FarRead(PageFile, buf, size))
 		Quit("PML_OpenPageFile: Length read failed");
 	lengthptr = (word *)buf;
 	for (i = 0,page = PMPages;i < ChunksInFile;i++,page++)
@@ -537,12 +364,12 @@ PML_OpenPageFile(void)
 void
 PML_ClosePageFile(void)
 {
-	if (PageFile != NULL)
+	if (PageFile != NULL) {
 		PHYSFS_close(PageFile);
-	if (PMSegPages)
-	{
-		MM_SetLock((memptr*)PMSegPages,false);
-		MM_FreePtr((memptr*)PMSegPages);
+	}
+
+	if (PMPages) {
+		MM_FreePtr((memptr**)&PMPages);
 	}
 }
 
@@ -875,56 +702,15 @@ PML_LoadPage(int pagenum,bool mainonly)
 //		Then, check XMS
 //		If not in XMS, load into Main Memory or EMS
 //
-#pragma warn -pia
-memptr
-PM_GetPage(int pagenum)
+byte *PM_GetPage(int pagenum)
 {
-	memptr	result;
-
-	if (pagenum >= ChunksInFile)
+	if (pagenum < 0 || pagenum >= ChunksInFile)
 		Quit("PM_GetPage: Invalid page request");
 
-#if 0	// for debugging
-asm	mov	dx,STATUS_REGISTER_1
-asm	in	al,dx
-asm	mov	dx,ATR_INDEX
-asm	mov	al,ATR_OVERSCAN
-asm	out	dx,al
-asm	mov	al,10	// bright green
-asm	out	dx,al
-#endif
-
-	if (!(result = PM_GetPageAddress(pagenum)))
-	{
-		bool mainonly = (pagenum >= PMSoundStart);
-if (!PMPages[pagenum].offset)	// JDC: sparse page
-	Quit ("Tried to load a sparse page!");
-		if (!(result = PML_GetPageFromXMS(pagenum,mainonly)))
-		{
-			if (PMPages[pagenum].lastHit == PMFrameCount)
-				PMThrashing++;
-
-			PML_LoadPage(pagenum,mainonly);
-			result = PM_GetPageAddress(pagenum);
-		}
-	}
 	PMPages[pagenum].lastHit = PMFrameCount;
 
-#if 0	// for debugging
-asm	mov	dx,STATUS_REGISTER_1
-asm	in	al,dx
-asm	mov	dx,ATR_INDEX
-asm	mov	al,ATR_OVERSCAN
-asm	out	dx,al
-asm	mov	al,3	// blue
-asm	out	dx,al
-asm	mov	al,0x20	// normal
-asm	out	dx,al
-#endif
-
-	return(result);
+	return (byte*)&PMPages[pagenum];
 }
-#pragma warn +pia
 
 //
 //	PM_SetPageLock() - Sets the lock type on a given page
@@ -1119,19 +905,12 @@ PM_Reset(void)
 	int				i;
 	PageListStruct	*page;
 
-	XMSPagesAvail = XMSAvail / PMPageSizeKB;
-
-	EMSPagesAvail = EMSAvail * (EMSPageSizeKB / PMPageSizeKB);
-	EMSPhysicalPage = 0;
-
-	MainPagesUsed = EMSPagesUsed = XMSPagesUsed = 0;
-
 	PMPanicMode = false;
 
 	// Initialize page list
-	for (i = 0,page = PMPages;i < PMNumBlocks;i++,page++)
+	for (i = 0, page = PMPages; i < PMNumBlocks; i++, page++)
 	{
-		page->mainPage = -1;
+		page->mainPage = 1;
 		page->emsPage = -1;
 		page->xmsPage = -1;
 		page->locked = pml_Unlocked;
@@ -1144,40 +923,14 @@ PM_Reset(void)
 void
 PM_Startup(void)
 {
-	bool	nomain,noems,noxms;
 	int		i;
 
 	if (PMStarted)
 		return;
 
-	nomain = noems = noxms = false;
-	for (i = 1;i < argsCount;i++)
-	{
-		switch (US_CheckParm(argsValues[i],ParmStrings))
-		{
-		case 0:
-			nomain = true;
-			break;
-		case 1:
-			noems = true;
-			break;
-		case 2:
-			noxms = true;
-			break;
-		}
-	}
-
 	PML_OpenPageFile();
 
-	if (!noems)
-		PML_StartupEMS();
-	if (!noxms)
-		PML_StartupXMS();
-
-	if (nomain && !EMSPresent)
-		Quit("PM_Startup: No main or EMS");
-	else
-		PML_StartupMainMem();
+	PML_StartupMainMem();
 
 	PM_Reset();
 
@@ -1191,7 +944,6 @@ void
 PM_Shutdown(void)
 {
 	PML_ShutdownXMS();
-	PML_ShutdownEMS();
 
 	if (!PMStarted)
 		return;

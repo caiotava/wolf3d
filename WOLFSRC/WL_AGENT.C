@@ -244,19 +244,7 @@ void ControlMovement (objtype *ob)
 
 void StatusDrawPic (unsigned x, unsigned y, unsigned picnum)
 {
-	unsigned	temp;
-
-	temp = bufferofs;
-	bufferofs = 0;
-
-	bufferofs = PAGE1START+(200-STATUSLINES)*SCREENWIDTH;
-	LatchDrawPic (x,y,picnum);
-	bufferofs = PAGE2START+(200-STATUSLINES)*SCREENWIDTH;
-	LatchDrawPic (x,y,picnum);
-	bufferofs = PAGE3START+(200-STATUSLINES)*SCREENWIDTH;
-	LatchDrawPic (x,y,picnum);
-
-	bufferofs = temp;
+	LatchDrawPic (x, y, picnum);
 }
 
 
@@ -351,10 +339,9 @@ void	LatchNumber (int x, int y, int width, long number)
 		width--;
 	}
 
-	c= length <= width ? 0 : length-width;
+	c = length <= width ? 0 : length-width;
 
-	while (c<length)
-	{
+	while (c<length) {
 		StatusDrawPic (x,y,str[c]-'0'+ N_0PIC);
 		x++;
 		c++;
@@ -803,7 +790,7 @@ bool TryMove (objtype *ob)
 {
 	int			xl,yl,xh,yh,x,y;
 	objtype		*check;
-	long		deltax,deltay;
+	int32_t		deltax,deltay;
 
 	xl = (ob->x-PLAYERSIZE) >>TILESHIFT;
 	yl = (ob->y-PLAYERSIZE) >>TILESHIFT;
@@ -928,7 +915,7 @@ void VictoryTile (void)
 
 void Thrust (int angle, long speed)
 {
-	long xmove,ymove;
+	int32_t xmove,ymove;
 	long	slowmax;
 	unsigned	offset;
 
@@ -1106,8 +1093,8 @@ void SpawnPlayer (int tilex, int tiley, int dir)
 	player->tiley = tiley;
 	player->areanumber =
 		*(mapsegs[0] + farmapylookup[player->tiley]+player->tilex);
-	player->x = ((long)tilex<<TILESHIFT)+TILEGLOBAL/2;
-	player->y = ((long)tiley<<TILESHIFT)+TILEGLOBAL/2;
+	player->x = ((int32_t)tilex<<TILESHIFT)+TILEGLOBAL/2;
+	player->y = ((int32_t)tiley<<TILESHIFT)+TILEGLOBAL/2;
 	player->state = &s_player;
 	player->angle = (1-dir)*90;
 	if (player->angle<0)
@@ -1418,5 +1405,3 @@ void	T_Player (objtype *ob)
 	player->tilex = player->x >> TILESHIFT;		// scale to tile values
 	player->tiley = player->y >> TILESHIFT;
 }
-
-

@@ -70,7 +70,7 @@ typedef struct mmblockstruct
 */
 
 mminfotype	mminfo;
-memptr		bufferseg;
+memptr		*bufferseg;
 bool		mmerror;
 
 void		(* beforesort) (void);
@@ -110,7 +110,6 @@ bool		MML_CheckForEMS (void);
 void 		MML_ShutdownEMS (void);
 void 		MM_MapEMS (void);
 bool 	MML_CheckForXMS (void);
-void 		MML_ShutdownXMS (void);
 void		MML_UseSpace (unsigned segstart, unsigned seglength);
 void 		MML_ClearBlock (void);
 
@@ -200,31 +199,6 @@ void MML_SetupXMS (void)
 /*
 ======================
 =
-= MML_ShutdownXMS
-=
-======================
-*/
-
-void MML_ShutdownXMS (void)
-{
-	int	i;
-	unsigned	base;
-
-	for (i=0;i<numUMBs;i++)
-	{
-		base = UMBbase[i];
-
-// asm	mov	ah,XMS_FREEUMB
-// asm	mov	dx,[base]
-// asm	call	[DWORD PTR XMSaddr]
-	}
-}
-
-//==========================================================================
-
-/*
-======================
-=
 = MML_UseSpace
 =
 = Marks a range of paragraphs as usable by the memory manager
@@ -297,7 +271,7 @@ void MML_UseSpace (unsigned segstart, unsigned seglength)
 
 void MML_ClearBlock (void)
 {
-	mmblocktype *scan,*last;
+	mmblocktype *scan;
 
 	scan = mmhead->next;
 
@@ -328,18 +302,14 @@ void MML_ClearBlock (void)
 ===================
 */
 
-static	char *ParmStrings[] = {"noems","noxms",""};
-
 void MM_Startup (void)
 {
 	int i;
-	unsigned 	long length;
-	void 	*start;
-	unsigned 	segstart,seglength,endfree;
+	unsigned endfree;
 
-	if (mmstarted)
+	if (mmstarted) {
 		MM_Shutdown ();
-
+	}
 
 	mmstarted = true;
 	bombonerror = true;
@@ -348,45 +318,45 @@ void MM_Startup (void)
 //
 	mmhead = NULL;
 	mmfree = &mmblocks[0];
-	for (i=0;i<MAXBLOCKS-1;i++)
+	for (i = 0; i < MAXBLOCKS-1; i++) {
 		mmblocks[i].next = &mmblocks[i+1];
+	}
 	mmblocks[i].next = NULL;
 
 //
 // locked block of all memory until we punch out free space
 //
 	GETNEWBLOCK;
-	mmhead = mmnew;				// this will allways be the first node
+	mmhead = mmnew;				// this will always be the first node
 	mmnew->start = 0;
 	mmnew->length = 0xffff;
 	mmnew->attributes = LOCKBIT;
-	mmnew->next = NULL;
+	mmnew->next = mmfree;
 	mmrover = mmhead;
-
 
 //
 // get all available near conventional memory segments
 //
-	// length=coreleft();
-	start = (void *)(nearheap = malloc(length));
+	unsigned long length = 1024 * 1024; // 1Mb
+	void *start = nearheap = malloc(length);
 
-	// length -= 16-(start&15);
+	length -= 16-((uintptr_t)start&15);
 	length -= SAVENEARHEAP;
-	seglength = length / 16;			// now in paragraphs
-	// segstart = start+start+15/16;
-	MML_UseSpace (segstart,seglength);
+	unsigned long seglength = length / 16;			// now in paragraphs
+	unsigned long segstart = (unsigned long)((uintptr_t)start + 15) / 16;
+	//MML_UseSpace (segstart, seglength);
 	mminfo.nearheap = length;
 
 //
 // get all available conventional memory segments
 //
-	// length=farcoreleft();
+	length = (1024*1024)*10; // 10Mb
 	start = farheap = malloc(length);
-	// length -= 16-(start&15);
+	length -= 16-((uintptr_t)start&15);
 	length -= SAVEFARHEAP;
 	seglength = length / 16;			// now in paragraphs
-	// segstart = start+start+15)/16;
-	MML_UseSpace (segstart,seglength);
+	segstart = (unsigned long)((uintptr_t)start + 15)/16;
+	//MML_UseSpace (segstart,seglength);
 	mminfo.farheap = length;
 	mminfo.mainmem = mminfo.nearheap + mminfo.farheap;
 
@@ -412,12 +382,12 @@ void MM_Startup (void)
 
 void MM_Shutdown (void)
 {
-  if (!mmstarted)
-	return;
+	if (!mmstarted) {
+		return;
+	}
 
-  // farfree (farheap);
-  free (nearheap);
-//  MML_ShutdownXMS ();
+	free(farheap);
+	free(nearheap);
 }
 
 //==========================================================================
@@ -432,8 +402,12 @@ void MM_Shutdown (void)
 ====================
 */
 
-void MM_GetPtr (memptr *baseptr,unsigned long size)
+void MM_GetPtr (memptr **baseptr, unsigned long size)
 {
+	*baseptr = malloc(size);
+	return;
+
+
 	mmblocktype *scan,*lastscan,*endscan
 				,*purge,*next;
 	int			search;
@@ -489,7 +463,7 @@ tryagain:
 			//
 				purge = lastscan->next;
 				lastscan->next = mmnew;
-				mmnew->start = *(unsigned *)baseptr = startseg;
+				mmnew->start = baseptr = startseg;
 				mmnew->next = scan;
 				while ( purge != scan)
 				{	// free the purgable block
@@ -521,7 +495,7 @@ tryagain:
 
 extern char configname[];
 extern	bool	insetupscaling;
-extern	int	viewsize;
+extern	short	viewsize;
 bool SetViewSize (unsigned width, unsigned height);
 #define HEIGHTRATIO		0.50
 //
@@ -556,8 +530,11 @@ mmblocktype	*savedmmnew;
 ====================
 */
 
-void MM_FreePtr (memptr *baseptr)
+void MM_FreePtr (memptr **baseptr)
 {
+	free(*baseptr);
+	return;
+
 	mmblocktype *scan,*last;
 
 	last = mmhead;
@@ -593,6 +570,7 @@ void MM_FreePtr (memptr *baseptr)
 
 void MM_SetPurge (memptr *baseptr, int purge)
 {
+	return;
 	mmblocktype *start;
 
 	start = mmrover;
@@ -627,15 +605,16 @@ void MM_SetPurge (memptr *baseptr, int purge)
 =====================
 */
 
-void MM_SetLock (memptr *baseptr, bool locked)
+void MM_SetLock (memptr **baseptr, bool locked)
 {
+	return;
 	mmblocktype *start;
 
 	start = mmrover;
 
 	do
 	{
-		if (mmrover->useptr == baseptr)
+		if (mmrover->useptr == (memptr*)baseptr)
 			break;
 
 		mmrover = mmrover->next;
@@ -949,5 +928,3 @@ void MM_BombOnError (bool bomb)
 {
 	bombonerror = bomb;
 }
-
-

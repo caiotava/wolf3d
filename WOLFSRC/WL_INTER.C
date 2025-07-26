@@ -312,11 +312,11 @@ void PG13 (void)
 	VW_FadeOut();
 	VWB_Bar(0,0,320,200,0x82);			// background
 
-	CA_CacheGrChunk (PG13PIC);
+	//CA_CacheGrChunk (PG13PIC);
 	VWB_DrawPic (216,110,PG13PIC);
 	VW_UpdateScreen ();
 
-	UNCACHEGRCHUNK (PG13PIC);
+	// UNCACHEGRCHUNK (PG13PIC);
 
 	VW_FadeIn();
 	IN_UserInput(TickBase*7);
@@ -1038,7 +1038,7 @@ void	DrawHighScores(void)
 	HighScore	*s;
 
 
-	MM_SortMem ();
+	//MM_SortMem ();
 
 #ifndef SPEAR
 //	CA_CacheGrChunk (C_CODEPIC);
@@ -1052,7 +1052,7 @@ void	DrawHighScores(void)
 	DrawStripes(10);
 
 	VWB_DrawPic(48,0,HIGHSCORESPIC);
-	UNCACHEGRCHUNK (HIGHSCORESPIC);
+	//UNCACHEGRCHUNK (HIGHSCORESPIC);
 
 	VWB_DrawPic(4*8,68,C_NAMEPIC);
 	VWB_DrawPic(20*8,68,C_LEVELPIC);

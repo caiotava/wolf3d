@@ -199,6 +199,8 @@ extern	bool		DigiPlaying;
 extern	int			DigiMap[];
 extern	longword	TimeCount;					// Global time in ticks
 
+#define GetTimeCount()  ((SDL_GetTicks()*7)/100)
+
 // Function prototypes
 extern	void	SD_Startup(void),
 				SD_Shutdown(void),
@@ -234,4 +236,3 @@ extern	void	SDL_PCPlaySound(PCSound *sound),
 #endif
 
 #endif
-

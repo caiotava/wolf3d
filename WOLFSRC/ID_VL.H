@@ -1,8 +1,13 @@
 // ID_VL.H
 
 // wolf compatability
+#ifndef ID_VL_H
+#define ID_VL_H
 
 #include <stdbool.h>
+#include <stdint.h>
+
+#include "WL_DEF.H"
 
 #define MS_Quit	Quit
 
@@ -94,23 +99,14 @@ extern	unsigned	ylookup[MAXSCANLINES];
 extern	bool		screenfaded;
 extern	unsigned	bordercolor;
 
+extern uint32_t screenBuffer[320 * 200];
+extern SDL_Color gamepal[256];
+
 //===========================================================================
 
 //
 // VGA hardware routines
 //
-
-#define VGAWRITEMODE(x) asm{\
-cli;\
-mov dx,GC_INDEX;\
-mov al,GC_MODE;\
-out dx,al;\
-inc dx;\
-in al,dx;\
-and al,252;\
-or al,x;\
-out dx,al;\
-sti;}
 
 #define VGAMAPMASK(x) asm{cli;mov dx,SC_INDEX;mov al,SC_MAPMASK;mov ah,x;out dx,ax;sti;}
 #define VGAREADMAP(x) asm{cli;mov dx,GC_INDEX;mov al,GC_READMAP;mov ah,x;out dx,ax;sti;}
@@ -121,24 +117,22 @@ void VL_Shutdown (void);
 
 void VL_SetVGAPlane (void);
 void VL_SetTextMode (void);
-void VL_DePlaneVGA (void);
-void VL_SetVGAPlaneMode (void);
-void VL_ClearVideo (byte color);
+void VL_DePlaneVGA (byte *source, int width, int height);
+void VL_ClearVideo (const uint32_t color);
 
 void VL_SetLineWidth (unsigned width);
 void VL_SetSplitScreen (int linenum);
 
 void VL_WaitVBL (int vbls);
 void VL_CrtcStart (int crtc);
-void VL_SetScreen (int crtc, int pelpan);
 
 void VL_FillPalette (int red, int green, int blue);
 void VL_SetColor	(int color, int red, int green, int blue);
 void VL_GetColor	(int color, int *red, int *green, int *blue);
-void VL_SetPalette (byte *palette);
-void VL_GetPalette (byte *palette);
+void VL_SetPalette (const SDL_Color *palette, const int size);
+void VL_GetPalette (SDL_Color *palette);
 void VL_FadeOut (int start, int end, int red, int green, int blue, int steps);
-void VL_FadeIn (int start, int end, byte *palette, int steps);
+void VL_FadeIn (int start, int end, SDL_Color *palette, int steps);
 void VL_ColorBorder (int color);
 
 void VL_Plot (int x, int y, int color);
@@ -150,7 +144,7 @@ void VL_MungePic (byte *source, unsigned width, unsigned height);
 void VL_DrawPicBare (int x, int y, byte *pic, int width, int height);
 void VL_MemToLatch (byte *source, int width, int height, unsigned dest);
 void VL_ScreenToScreen (unsigned source, unsigned dest,int width, int height);
-void VL_MemToScreen (byte *source, int width, int height, int x, int y);
+void VL_MemToScreen (const byte *source, int width, int height, int x, int y);
 void VL_MaskedToScreen (byte *source, int width, int height, int x, int y);
 
 void VL_DrawTile8String (char *str, char *tile8ptr, int printx, int printy);
@@ -159,5 +153,6 @@ void VL_SizeTile8String (char *str, int *width, int *height);
 void VL_DrawPropString (char *str, unsigned tile8ptr, int printx, int printy);
 void VL_SizePropString (char *str, int *width, int *height, char *font);
 
-void VL_TestPaletteSet (void);
-
+byte* VL_LockSurface(SDL_Surface *surface);
+void VL_UnlockSurface(SDL_Surface *surface);
+#endif // ID_VL_H

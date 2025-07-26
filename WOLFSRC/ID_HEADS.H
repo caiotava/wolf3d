@@ -7,15 +7,12 @@
 #include <STDLIB.H>
 #include <STRING.H>
 #include <SDL2/SDL.h>
+#include "ID_HEAD.H"
 #include "filesystem.h"
 #define __ID_GLOB__
 #include "VERSION.H"
 
 //--------------------------------------------------------------------------
-
-extern	char		signon;
-
-#define	introscn	signon
 
 #ifdef JAPAN
 #ifdef JAPDEMO
@@ -57,20 +54,6 @@ extern	char		signon;
 //	Types.h - Generic types, #defines, etc.
 //	v1.0d1
 //
-typedef	unsigned	char		byte;
-typedef	unsigned	int			word;
-typedef	unsigned	long		longword;
-typedef	byte *					Ptr;
-
-// typedef	struct
-// 		{
-// 			int	x,y;
-// 		} Point;
-// typedef	struct
-// 		{
-// 			Point	ul,lr;
-// 		} Rect;
-
 #define	nil	((void *)0)
 
 
@@ -111,4 +94,3 @@ extern	unsigned	blockstarts[UPDATEWIDE*UPDATEHIGH];
 extern	byte		fontcolor,backcolor;
 
 #define SETFONTCOLOR(f,b) fontcolor=f;backcolor=b;
-

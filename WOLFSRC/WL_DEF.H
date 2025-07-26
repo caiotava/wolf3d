@@ -22,6 +22,10 @@
 #endif
 
 #include "FOREIGN.H"
+
+// force all structs maximum alignment of members of structures
+#pragma pack(1)
+
 /*
 =============================================================================
 
@@ -53,6 +57,12 @@
 #define MAXSTATS		400				// max number of lamps, bonus, etc
 #define MAXDOORS		64				// max number of sliding doors
 #define MAXWALLTILES	64				// max number of wall tiles
+
+#define WALLSHIFT       6
+#define BIT_WALL        (1 << WALLSHIFT)
+#define BIT_DOOR        (1 << (WALLSHIFT + 1))
+#define BIT_ALLTILES    (1 << (WALLSHIFT + 2))
+#define FRACBITS         16
 
 //
 // tile constants
@@ -123,6 +133,7 @@
 
 
 #define	MAXSCALEHEIGHT	256				// largest scale on largest view
+#define	MAXVIEWHEIGHT	200
 
 #define MAXVIEWWIDTH		320
 
@@ -485,7 +496,7 @@ enum	{
 =============================================================================
 */
 
-typedef long fixed;
+typedef int32_t fixed;
 
 typedef enum {
 	di_north,
@@ -614,37 +625,37 @@ typedef enum {
 
 typedef struct objstruct
 {
-	activetype	active;
-	int			ticcount;
-	classtype	obclass;
+	int8_t		active;
+	short		ticcount;
+	byte		obclass;
 	struct statestruct	*state;
 
-	byte		flags;				//	FL_SHOOTABLE, etc
+	uint32_t	flags;				//	FL_SHOOTABLE, etc
 
-	long		distance;			// if negative, wait for that door to open
-	dirtype		dir;
+	int32_t		distance;			// if negative, wait for that door to open
+	byte		dir;
 
 	fixed 		x,y;
-	unsigned	tilex,tiley;
+	byte		tilex,tiley;
 	byte		areanumber;
 
-	int	 		viewx;
-	unsigned	viewheight;
+	short 		viewx;
+	word		viewheight;
 	fixed		transx,transy;		// in global coord
 
-	int 		angle;
-	int			hitpoints;
-	long		speed;
+	short 		angle;
+	short		hitpoints;
+	int32_t		speed;
 
-	int			temp1,temp2,temp3;
+	short		temp1,temp2,temp3;
 	struct		objstruct	*next,*prev;
 } objtype;
 
 typedef struct	statestruct
 {
 	bool	rotate;
-	int		shapenum;			// a shapenum of -1 means get from ob->temp1
-	int		tictime;
+	short	shapenum;			// a shapenum of -1 means get from ob->temp1
+	short	tictime;
 	void	(*think) (objtype *),(*action) (objtype *);
 	struct	statestruct	*next;
 } statetype;
@@ -658,13 +669,19 @@ typedef struct	statestruct
 
 typedef struct statstruct
 {
-	byte	tilex,tiley;
-	byte	*visspot;
-	int		shapenum;			// if shapenum == -1 the obj has been removed
-	byte	flags;
-	byte	itemnumber;
+	byte		tilex,tiley;
+	byte		*visspot;
+	short		shapenum;			// if shapenum == -1 the obj has been removed
+	uint32_t	flags;
+	byte		itemnumber;
 } statobj_t;
 
+typedef struct
+{
+	word leftpix,rightpix;
+	word dataofs[64];
+	// table data after dataofs[rightpix-leftpix+1]
+} compshape_t;
 
 //---------------------
 //
@@ -683,7 +700,8 @@ typedef struct doorstruct
 	bool	vertical;
 	byte	lock;
 	enum dooractiontypes	action;
-	int		ticcount;
+	short	ticcount;
+	uint16_t position;
 } doorobj_t;
 
 
@@ -795,7 +813,7 @@ extern  byte    *vbuf;
 // math tables
 //
 extern	int			pixelangle[MAXVIEWWIDTH];
-extern	long		finetangent[FINEANGLES/4];
+extern	int32_t		finetangent[FINEANGLES/4];
 extern	fixed 		sintable[],*costable;
 
 //
@@ -805,7 +823,11 @@ extern	fixed 	scale,maxslope;
 extern	long	heightnumerator;
 extern	int		minheightdiv;
 
-extern	char	configname[13];
+//
+// engine files
+//
+extern char	configname[13];
+extern char endfilename[13];
 
 
 //
@@ -827,6 +849,18 @@ bool		SaveTheGame(PHYSFS_File *file,int x,int y);
 void 		ShowViewSize (int width);
 void		ShutdownId (void);
 
+/*
+=============================================================================
+
+						SDL Definitions
+
+=============================================================================
+*/
+extern SDL_Window *sdlWindow;
+extern SDL_Renderer *sdlRenderer;
+extern SDL_Surface *sdlScreen;
+extern SDL_Surface *sdlScreenBuffer;
+extern SDL_Texture *sdlScreenTexture;
 
 /*
 =============================================================================
@@ -910,15 +944,15 @@ extern	int			extravbls;
 // control info
 //
 extern	bool		mouseenabled,joystickenabled,joypadenabled,joystickprogressive;
-extern	int			joystickport;
-extern	int			dirscan[4];
-extern	int			buttonscan[NUMBUTTONS];
-extern	int			buttonmouse[4];
-extern	int			buttonjoy[4];
+extern	short		joystickport;
+extern	short		dirscan[4];
+extern	short		buttonscan[NUMBUTTONS];
+extern	short		buttonmouse[4];
+extern	short		buttonjoy[4];
 
 extern	bool		buttonheld[NUMBUTTONS];
 
-extern	int			viewsize;
+extern	short		viewsize;
 
 //
 // curent user input
@@ -928,7 +962,7 @@ extern	bool		buttonstate[NUMBUTTONS];
 
 extern	bool		demorecord,demoplayback;
 extern	char		*demoptr, *lastdemoptr;
-extern	memptr		demobuffer;
+extern	memptr		*demobuffer;
 
 
 
@@ -955,6 +989,7 @@ void StartBonusFlash (void);
 */
 
 void IntroScreen (void);
+void PG13 (void);
 void PreloadGraphics(void);
 void LevelCompleted (void);
 void	CheckHighScore (long score,word other);
@@ -985,7 +1020,7 @@ void PicturePause (void);
 extern	unsigned screenloc[3];
 extern	unsigned freelatch;
 
-extern	long 	lasttimecount;
+extern	int32_t	lasttimecount;
 extern	long 	frameon;
 extern	bool	fizzlein;
 
@@ -999,7 +1034,7 @@ extern	fixed	mindist;
 // math tables
 //
 extern	int			pixelangle[MAXVIEWWIDTH];
-extern	long		finetangent[FINEANGLES/4];
+extern	int32_t		finetangent[FINEANGLES/4];
 extern	fixed 		sintable[],*costable;
 
 //
@@ -1020,9 +1055,9 @@ extern	unsigned	postx;
 extern	unsigned	postwidth;
 
 
-extern	int		horizwall[],vertwall[];
+extern	word	horizwall[],vertwall[];
 
-extern	unsigned	pwallpos;
+extern	word	pwallpos;
 
 
 fixed	FixedByFrac (fixed a, fixed b);
@@ -1164,16 +1199,18 @@ void	Thrust (int angle, long speed);
 extern	doorobj_t	doorobjlist[MAXDOORS],*lastdoorobj;
 extern	int			doornum;
 
-extern	unsigned	doorposition[MAXDOORS],pwallstate;
+extern	word	doorposition[MAXDOORS],pwallstate;
 
-extern	byte		areaconnect[NUMAREAS][NUMAREAS];
+extern	byte	areaconnect[NUMAREAS][NUMAREAS];
 
-extern	bool		areabyplayer[NUMAREAS];
+extern	bool	areabyplayer[NUMAREAS];
 
-extern unsigned	pwallstate;
-extern unsigned	pwallpos;			// amount a pushable wall has been moved (0-63)
-extern unsigned	pwallx,pwally;
-extern int			pwalldir;
+extern word	pwallstate;
+extern word	pwallpos;			// amount a pushable wall has been moved (0-63)
+extern word	pwallx,pwally;
+extern byte	pwalldir;
+extern uint8_t pwalltile;
+extern int dirs[4][2];
 
 
 void InitDoorList (void);
@@ -1187,6 +1224,7 @@ void PlaceItemType (int itemtype, int tilex, int tiley);
 void PushWall (int checkx, int checky, int dir);
 void OperateDoor (int door);
 void InitAreas (void);
+fixed FixedMul (fixed a, fixed b);
 
 /*
 =============================================================================

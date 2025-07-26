@@ -272,7 +272,7 @@ Every time a door opens or closes the areabyplayer matrix gets recalculated.
 doorobj_t	doorobjlist[MAXDOORS],*lastdoorobj;
 int			doornum;
 
-unsigned	doorposition[MAXDOORS];		// leading edge of door 0=closed
+word		doorposition[MAXDOORS];		// leading edge of door 0=closed
 										// 0xffff = fully open
 
 byte		areaconnect[NUMAREAS][NUMAREAS];
@@ -349,8 +349,7 @@ void InitDoorList (void)
 
 void SpawnDoor (int tilex, int tiley, bool vertical, int lock)
 {
-	int	areanumber;
-	unsigned	*map;
+	word *map;
 
 	if (doornum==64)
 		Quit ("64+ doors on level!");
@@ -715,10 +714,12 @@ void MoveDoors (void)
 =============================================================================
 */
 
-unsigned	pwallstate;
-unsigned	pwallpos;			// amount a pushable wall has been moved (0-63)
-unsigned	pwallx,pwally;
-int			pwalldir;
+word	pwallstate;
+word	pwallpos;			// amount a pushable wall has been moved (0-63)
+word	pwallx,pwally;
+byte	pwalldir;
+uint8_t pwalltile;
+int dirs[4][2]={{0,-1},{1,0},{0,1},{-1,0}};
 
 /*
 ===============
@@ -900,4 +901,3 @@ void MovePWalls (void)
 	pwallpos = (pwallstate/2)&63;
 
 }
-

@@ -36,15 +36,15 @@ typedef	struct
 
 typedef struct
 {
-	int width,height;
+	int16_t width,height;
 } pictabletype;
 
 
 typedef struct
 {
-	int height;
-	int location[256];
-	char width[256];
+	int16_t height;
+	int16_t location[256];
+	int8_t width[256];
 } fontstruct;
 
 
@@ -92,14 +92,10 @@ void VWB_Vlin (int y1, int y2, int x, int color);
 //
 // wolfenstein EGA compatability stuff
 //
-extern byte gamepal;
-
 void VH_SetDefaultColors (void);
 
-#define VW_Startup		VL_Startup
 #define VW_Shutdown		VL_Shutdown
 #define VW_SetCRTC		VL_SetCRTC
-#define VW_SetScreen	VL_SetScreen
 #define VW_Bar			VL_Bar
 #define VW_Plot			VL_Plot
 #define VW_Hlin(x,z,y,c)	VL_Hlin(x,y,(z)-(x)+1,c)
@@ -115,7 +111,6 @@ void VH_SetDefaultColors (void);
 #define VW_SetDefaultColors	VH_SetDefaultColors
 void	VW_MeasurePropString (char *string, word *width, word *height);
 #define EGAMAPMASK(x)	VGAMAPMASK(x)
-#define EGAWRITEMODE(x)	VGAWRITEMODE(x)
 
 //#define VW_MemToScreen	VL_MemToLatch
 

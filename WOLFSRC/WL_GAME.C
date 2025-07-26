@@ -625,18 +625,21 @@ void ScanInfoPlane (void)
 void SetupGameLevel (void)
 {
 	int	x,y,i;
-	unsigned	*map,tile,spot;
+	word	*map,tile,spot;
 
 
 	if (!loadedgame)
 	{
-	 gamestate.TimeCount=
-	 gamestate.secrettotal=
-	 gamestate.killtotal=
-	 gamestate.treasuretotal=
-	 gamestate.secretcount=
-	 gamestate.killcount=
-	 gamestate.treasurecount=0;
+		gamestate.TimeCount =
+		gamestate.secrettotal =
+		gamestate.killtotal =
+		gamestate.treasuretotal =
+		gamestate.secretcount =
+		gamestate.killcount =
+		gamestate.treasurecount =
+		gamestate.attackframe =
+		gamestate.attackcount =
+		gamestate.weaponframe = 0;
 	}
 
 	if (demoplayback || demorecord)
@@ -656,31 +659,28 @@ void SetupGameLevel (void)
 	if (mapwidth != 64 || mapheight != 64)
 		Quit ("Map not 64*64!");
 
-
 //
 // copy the wall data to a data segment array
 //
 	memset (tilemap,0,sizeof(tilemap));
 	memset (actorat,0,sizeof(actorat));
+
 	map = mapsegs[0];
-	for (y=0;y<mapheight;y++)
-		for (x=0;x<mapwidth;x++)
-		{
+	for (y = 0; y < mapheight; y++) {
+		for (x = 0; x < mapwidth; x++) {
 			tile = *map++;
-			if (tile<AREATILE)
-			{
-			// solid wall
+
+			if (tile < AREATILE) {
+				// solid wall
 				tilemap[x][y] = tile;
 				actorat[x][y] = (objtype*) tile;
-			}
-			else
-			{
-			// area floor
+			} else {
+				// area floor
 				tilemap[x][y] = 0;
-				actorat[x][y] = NULL;
+				actorat[x][y] = 0;
 			}
 		}
-
+	}
 //
 // spawn doors
 //
@@ -689,34 +689,34 @@ void SetupGameLevel (void)
 	InitStaticList ();
 
 	map = mapsegs[0];
-	for (y=0;y<mapheight;y++)
-		for (x=0;x<mapwidth;x++)
-		{
+	for (y = 0; y < mapheight; y++) {
+		for (x = 0; x < mapwidth; x++) {
 			tile = *map++;
 			if (tile >= 90 && tile <= 101)
 			{
-			// door
+				// door
 				switch (tile)
 				{
-				case 90:
-				case 92:
-				case 94:
-				case 96:
-				case 98:
-				case 100:
-					SpawnDoor (x,y,1,(tile-90)/2);
+					case 90:
+					case 92:
+					case 94:
+					case 96:
+					case 98:
+					case 100:
+						SpawnDoor (x,y,1,(tile-90)/2);
 					break;
-				case 91:
-				case 93:
-				case 95:
-				case 97:
-				case 99:
-				case 101:
-					SpawnDoor (x,y,0,(tile-91)/2);
+					case 91:
+					case 93:
+					case 95:
+					case 97:
+					case 99:
+					case 101:
+						SpawnDoor (x,y,0,(tile-91)/2);
 					break;
 				}
 			}
 		}
+	}
 
 //
 // spawn actors
@@ -727,6 +727,8 @@ void SetupGameLevel (void)
 // take out the ambush markers
 //
 	map = mapsegs[0];
+	memset(tilemap, 0, sizeof(tilemap));
+	memset(actorat, 0, sizeof(actorat));
 	for (y=0;y<mapheight;y++)
 		for (x=0;x<mapwidth;x++)
 		{
@@ -734,8 +736,8 @@ void SetupGameLevel (void)
 			if (tile == AMBUSHTILE)
 			{
 				tilemap[x][y] = 0;
-				if (actorat[x][y]->angle == AMBUSHTILE)
-					actorat[x][y] = NULL;
+				// if (actorat[x][y]->angle == AMBUSHTILE)
+				// 	actorat[x][y] = NULL;
 
 				if (*map >= AREATILE)
 					tile = *map;
@@ -868,24 +870,14 @@ void DrawPlayBorder (void)
 void DrawPlayScreen (void)
 {
 	int	i,j,p,m;
-	unsigned	temp;
 
 	VW_FadeOut ();
 
-	temp = bufferofs;
-
-	CA_CacheGrChunk (STATUSBARPIC);
-
-	for (i=0;i<3;i++)
+	for (i = 0; i < 3; i++)
 	{
-		bufferofs = screenloc[i];
 		DrawPlayBorder ();
 		VWB_DrawPic (0,200-STATUSLINES,STATUSBARPIC);
 	}
-
-	bufferofs = temp;
-
-	UNCACHEGRCHUNK (STATUSBARPIC);
 
 	DrawFace ();
 	DrawHealth ();
@@ -1053,9 +1045,7 @@ void PlayDemo (int demonumber)
 	int dems[1]={T_DEMO0};
 #endif
 
-	CA_CacheGrChunk(dems[demonumber]);
 	demoptr = (char *) grsegs[dems[demonumber]];
-	MM_SetLock (&grsegs[dems[demonumber]],true);
 #else
 	demoname[4] = '0'+demonumber;
 	CA_LoadFile (demoname,&demobuffer);
@@ -1066,8 +1056,8 @@ void PlayDemo (int demonumber)
 	NewGame (1,0);
 	gamestate.mapon = *demoptr++;
 	gamestate.difficulty = gd_hard;
-	// length = *((unsigned *)demoptr)++;
-	demoptr++;
+	length = *((uint16_t*)demoptr);
+	demoptr += 3;
 	lastdemoptr = demoptr-4+length;
 
 	VW_FadeOut ();
@@ -1481,4 +1471,3 @@ startplayloop:
 	} while (1);
 
 }
-

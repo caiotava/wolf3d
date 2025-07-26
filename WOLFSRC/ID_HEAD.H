@@ -14,21 +14,20 @@
 
 #define GRMODE	VGAGR
 
-#include "VERSION.H"
-typedef	unsigned	char		byte;
-typedef	unsigned	int			word;
-typedef	unsigned	long		longword;
-typedef	byte *					Ptr;
+#include <stdint.h>
 
-typedef	struct
-		{
-			int	x,y;
-		} Point;
+typedef	uint8_t		byte;
+typedef	uint16_t	word;
+typedef	uint32_t	longword;
+typedef	byte		*Ptr;
 
-typedef	struct
-		{
-			Point	ul,lr;
-		} Rect;
+typedef	struct {
+	int	x, y;
+} Point;
+
+typedef	struct {
+	Point ul, lr;
+} Rect;
 
 
 void	Quit (char *error);		// defined in user program

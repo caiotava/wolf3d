@@ -39,8 +39,8 @@
 =============================================================================
 */
 
-char            str[80],str2[20];
-int				tedlevelnum;
+char         str[80],str2[20];
+int			 tedlevelnum;
 bool         tedlevel;
 bool         nospr;
 int                     dirangle[9] = {0,ANGLES/8,2*ANGLES/8,3*ANGLES/8,4*ANGLES/8,
@@ -61,7 +61,6 @@ int             minheightdiv;
 int				argsCount;
 char			**argsValues;
 unsigned		screenPitch, bufferPitch;
-char			signon;
 
 
 void            Quit (char *error);
@@ -70,7 +69,7 @@ bool			startgame,loadedgame;
 int             mouseadjustment;
 
 char	configname[13]="CONFIG.";
-
+extern	byte signon[];
 
 /*
 =============================================================================
@@ -91,21 +90,37 @@ char	configname[13]="CONFIG.";
 
 void ReadConfig(void)
 {
-	SDMode      sd;
-	SMMode      sm;
-	SDSMode     sds;
+	short      sd;
+	short      sm;
+	short     sds;
 
 	PHYSFS_File *file = PHYSFS_openRead(configname);
 	if (file != NULL)
 	{
-	//
-	// valid config file
-	//
-		PHYSFS_readBytes(file,Scores,sizeof(HighScore) * MaxScores);
+		// Need to calculate the struct size manually because, to avoid memory padding
+		// the old CONFIG file doesn't have any padding for memory alignment.
+		char bufHighScore[((sizeof(char) * (MaxHighName + 1)) + sizeof(int32_t) + sizeof(uint16_t) * 2) * MaxScores];
+		//
+		// valid config file
+		//
+		PHYSFS_readBytes(file, bufHighScore,sizeof(bufHighScore));
 
-		PHYSFS_readBytes(file,&sd,sizeof(sd));
-		PHYSFS_readBytes(file,&sm,sizeof(sm));
-		PHYSFS_readBytes(file,&sds,sizeof(sds));
+		char *score = bufHighScore;
+		for (int i = 0; i < MaxScores; i++) {
+			const size_t nameSize = sizeof(((HighScore *)0)->name);
+			memcpy(&Scores[i], score, nameSize);
+			score += nameSize;
+			Scores[i].score = *((int32_t*)score);
+			score += sizeof(((HighScore *)0)->score);
+			Scores[i].completed = *((word*)score);
+			score += sizeof(((HighScore *)0)->completed);
+			Scores[i].episode = *((word*)score);
+			score += sizeof(((HighScore *)0)->completed);
+		}
+
+		PHYSFS_readBytes(file,&sd,sizeof(short));
+		PHYSFS_readBytes(file,&sm,sizeof(short));
+		PHYSFS_readBytes(file,&sds,sizeof(short));
 
 		PHYSFS_readBytes(file,&mouseenabled,sizeof(mouseenabled));
 		PHYSFS_readBytes(file,&joystickenabled,sizeof(joystickenabled));
@@ -543,19 +558,12 @@ const   float   radtoint = (float)FINEANGLES/2/PI;
 
 void BuildTables (void)
 {
-  int           i;
-  float         angle,anglestep;
-  double        tang;
-  fixed         value;
-
-
-//
-// calculate fine tangents
-//
-
-	for (i=0;i<FINEANGLES/8;i++)
+	//
+	// calculate fine tangents
+	//
+	for (int i = 0; i < FINEANGLES/8; i++)
 	{
-		tang = tan( (i+0.5)/radtoint);
+		const double tang = tan((i + 0.5) / radtoint);
 		finetangent[i] = tang*TILEGLOBAL;
 		finetangent[FINEANGLES/4-1-i] = 1/tang*TILEGLOBAL;
 	}
@@ -568,19 +576,18 @@ void BuildTables (void)
 // bits 16-30 should be 0
 //
 
-  angle = 0;
-  anglestep = PI/2/ANGLEQUAD;
-  for (i=0;i<=ANGLEQUAD;i++)
-  {
-	value=GLOBAL1*sin(angle);
-	sintable[i]=
-	  sintable[i+ANGLES]=
-	  sintable[ANGLES/2-i] = value;
-	sintable[ANGLES-i]=
-	  sintable[ANGLES/2+i] = value | 0x80000000l;
-	angle += anglestep;
-  }
+  float angle = 0;
+  float anglestep = PI / 2 / ANGLEQUAD;
 
+	for (int i = 0; i <= ANGLEQUAD; i++) {
+		fixed value = GLOBAL1 * sin(angle);
+		sintable[i]= sintable[i+ANGLES] = sintable[ANGLES/2-i] = value;
+		sintable[ANGLES-i]= sintable[ANGLES/2+i] = -value;
+		angle += anglestep;
+	}
+
+	sintable[ANGLEQUAD] = 65536;
+	sintable[3*ANGLEQUAD] = -65536;
 }
 
 //===========================================================================
@@ -684,28 +691,11 @@ void SetupWalls (void)
 
 void SignonScreen (void)                        // VGA version
 {
-	unsigned        segstart,seglength;
+	VL_ClearVideo (0);
+	VL_SetPalette (gamepal, sizeof(gamepal));
+	VL_SetLineWidth (sdlScreenBuffer->pitch);
 
-	VL_SetVGAPlaneMode ();
-	VL_TestPaletteSet ();
-	VL_SetPalette (&gamepal);
-
-	VW_SetScreen(0x8000,0);
-	// VL_MungePic (&introscn,320,200);
-	// VL_MemToScreen (&introscn,320,200,0,0);
-	// VW_SetScreen(0,0);
-
-//
-// reclaim the memory from the linked in signon screen
-//
-	segstart = introscn;
-	seglength = 64000/16;
-	if (introscn)
-	{
-		segstart++;
-		seglength--;
-	}
-	MML_UseSpace (segstart,seglength);
+	VL_MemToScreen (signon,320,200,0,0);
 }
 
 
@@ -736,6 +726,8 @@ void FinishSignon (void)
 	#endif
 
 	#endif
+
+	VW_UpdateScreen();
 
 	if (!NoWait)
 		IN_Ack ();
@@ -916,12 +908,9 @@ static  int     wolfdigimap[] =
 
 void InitDigiMap (void)
 {
-	int                     *map;
-
-	for (map = wolfdigimap;*map != LASTSOUND;map += 2)
+	for (int *map = wolfdigimap;*map != LASTSOUND;map += 2) {
 		DigiMap[map[0]] = map[1];
-
-
+	}
 }
 
 
@@ -1102,11 +1091,10 @@ void InitGame (void)
 	int			i,x,y;
 	unsigned	*blockstart;
 
-	MM_Startup ();                  // so the signon screen can be freed
-
 	SignonScreen ();
+	VW_UpdateScreen();
 
-	VW_Startup ();
+	VL_Startup ();
 	IN_Startup ();
 	PM_Startup ();
 	PM_UnlockMainMem ();
@@ -1114,23 +1102,7 @@ void InitGame (void)
 	CA_Startup ();
 	US_Startup ();
 
-
-#ifndef SPEAR
-	if (mminfo.mainmem < 235000L)
-#else
-	if (mminfo.mainmem < 257000L && !MS_CheckParm("debugmode"))
-#endif
-	{
-		memptr screen;
-
-		CA_CacheGrChunk (ERRORSCREEN);
-		screen = grsegs[ERRORSCREEN];
-		ShutdownId();
-		// movedata ((unsigned)screen,7+7*160,0xb800,0,17*160);
-		// gotoxy (1,23);
-		exit(1);
-	}
-
+	MM_GetPtr (&bufferseg,BUFFERSIZE);
 
 //
 // build some tables
@@ -1175,10 +1147,8 @@ void InitGame (void)
 // load in and lock down some basic chunks
 //
 
-	CA_CacheGrChunk(STARTFONT);
-	MM_SetLock (&grsegs[STARTFONT],true);
-
-	LoadLatchMem ();
+	// CA_CacheGrChunk(STARTFONT);
+	// LoadLatchMem ();
 	BuildTables ();          // trig tables
 	SetupWalls ();
 
@@ -1234,7 +1204,7 @@ bool SetViewSize (unsigned width, unsigned height)
 // build all needed compiled scalers
 //
 //	MM_BombOnError (false);
-	SetupScaling (viewwidth*1.5);
+	//SetupScaling (viewwidth*1.5);
 #if 0
 	MM_BombOnError (true);
 	if (mmerror)
@@ -1266,8 +1236,8 @@ void ShowViewSize (int width)
 
 void NewViewSize (int width)
 {
-	CA_UpLevel ();
-	MM_SortMem ();
+	// CA_UpLevel ();
+	//MM_SortMem ();
 	viewsize = width;
 	SetViewSize (width*16,width*16*HEIGHTRATIO);
 	CA_DownLevel ();
@@ -1349,7 +1319,7 @@ static  char *ParmStrings[] = {"baby","easy","normal","hard",""};
 
 void    DemoLoop (void)
 {
-	static int LastDemo;
+	static int LastDemo = 0;
 	int     i,level;
 	long nsize;
 	memptr	nullblock;
@@ -1416,8 +1386,8 @@ void    DemoLoop (void)
 	StartCPMusic(INTROSONG);
 
 #ifndef JAPAN
-	// if (!NoWait)
-		// PG13 ();
+	if (!NoWait)
+		PG13();
 #endif
 
 #endif
@@ -1429,7 +1399,7 @@ void    DemoLoop (void)
 //
 // title page
 //
-			MM_SortMem ();
+			//MM_SortMem ();
 #ifndef DEMOTEST
 
 #ifdef SPEAR
@@ -1447,7 +1417,7 @@ void    DemoLoop (void)
 
 			UNCACHEGRCHUNK (TITLEPALETTE);
 #else
-			CA_CacheScreen (TITLEPIC);
+			VWB_DrawPic (0, 0, TITLEPIC);
 			VW_UpdateScreen ();
 			VW_FadeIn();
 #endif
@@ -1457,7 +1427,7 @@ void    DemoLoop (void)
 //
 // credits page
 //
-			CA_CacheScreen (CREDITSPIC);
+			VWB_DrawPic (0, 0, CREDITSPIC);
 			VW_UpdateScreen();
 			VW_FadeIn ();
 			if (IN_UserInput(TickBase*10))
@@ -1485,7 +1455,7 @@ void    DemoLoop (void)
 
 			if (playstate == ex_abort)
 				break;
-			StartCPMusic(INTROSONG);
+			// StartCPMusic(INTROSONG);
 		}
 
 		VW_FadeOut ();
@@ -1513,6 +1483,95 @@ void    DemoLoop (void)
 
 
 /*
+=====================
+=
+= initSystems
+=
+=====================
+*/
+
+SDL_Window *sdlWindow;
+SDL_Renderer *sdlRenderer;
+SDL_Surface *sdlScreen;
+SDL_Surface *sdlScreenBuffer;
+SDL_Texture *sdlScreenTexture;
+
+bool initSystems(int argc, char *argv[]) {
+	argsCount = argc;
+	argsValues = argv;
+
+	fs_init(argsValues);
+
+	if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
+		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "error to initialize sdl: %s", SDL_GetError());
+		return false;
+	}
+
+	sdlWindow = SDL_CreateWindow("Wolfenstein 3D", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 600, SDL_WINDOW_SHOWN);
+	if (sdlWindow == NULL) {
+		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "error to create window: %s", SDL_GetError());
+		return false;
+	}
+
+	sdlRenderer = SDL_CreateRenderer(sdlWindow, -1, SDL_RENDERER_ACCELERATED);
+	if (sdlRenderer == NULL) {
+		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "error to create renderer: %s", SDL_GetError());
+		return false;
+	}
+
+	SDL_SetRenderDrawBlendMode(sdlRenderer, SDL_BLENDMODE_BLEND);
+	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
+
+	uint32_t a, r, g, b, screenBits;
+	SDL_PixelFormatEnumToMasks(SDL_PIXELFORMAT_ARGB8888, &screenBits, &r, &g, &b, &a);
+
+	sdlScreen = SDL_CreateRGBSurface(0, MAXVIEWWIDTH, MAXVIEWHEIGHT, screenBits, r, g, b, a);
+	if (sdlScreen == NULL) {
+		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "error to create screen surface: %s", SDL_GetError());
+		return false;
+	}
+
+	sdlScreenBuffer = SDL_CreateRGBSurface(0, MAXVIEWWIDTH, MAXVIEWHEIGHT, 8, 0, 0, 0, 0);
+	if (sdlScreenBuffer == NULL) {
+		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "error to create screen buffer: %s", SDL_GetError());
+		return false;
+	}
+
+	sdlScreenTexture = SDL_CreateTexture(sdlRenderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, MAXVIEWWIDTH, MAXVIEWHEIGHT);
+	if (sdlScreenTexture == NULL) {
+		SDL_LogError(SDL_LOG_CATEGORY_ERROR, "error to create screen texture: %s", SDL_GetError());
+		return false;
+	}
+
+	return true;
+}
+
+void shutdownSystems() {
+	if (sdlScreenTexture != NULL) {
+		SDL_DestroyTexture(sdlScreenTexture);
+	}
+
+	if (sdlScreenBuffer != NULL) {
+		SDL_FreeSurface(sdlScreenBuffer);
+	}
+
+	if (sdlScreen != NULL) {
+		SDL_FreeSurface(sdlScreen);
+	}
+
+	if (sdlRenderer != NULL) {
+		SDL_DestroyWindow (sdlWindow);
+	}
+
+	if (sdlWindow != NULL) {
+		SDL_DestroyRenderer (sdlRenderer);
+	}
+
+	fs_close();
+	SDL_Quit();
+}
+
+/*
 ==========================
 =
 = main
@@ -1524,16 +1583,15 @@ char    *nosprtxt[] = {"nospr","\0"};
 
 int main (int argc, char *argv[])
 {
-	argsCount = argc;
-	argsValues = argv;
+	if (initSystems(argc, argv)) {
+		CheckForEpisodes();
+		InitGame ();
+		DemoLoop();
 
-	CheckForEpisodes();
+		Quit("Demo loop exited???");
+	}
 
-	InitGame ();
-
-	DemoLoop();
-
-	Quit("Demo loop exited???");
+	shutdownSystems();
 
 	return 0;
 }

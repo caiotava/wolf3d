@@ -41,41 +41,37 @@ void VW_DrawPropString (char *string)
 {
 	fontstruct  *font;
 	int		    width, step, height;
-	byte	    *source, *dest;
+	byte	    *source;
 	byte	    ch;
 	int i;
-	int sx, sy;
 
-	// dest = VL_LockSurface(screenBuffer);
+	byte *dest = VL_LockSurface(sdlScreenBuffer);
 	if(dest == NULL) return;
 
 	font = (fontstruct *) grsegs[STARTFONT+fontnumber];
 	height = font->height;
-	// dest += scaleFactor * (ylookup[py] + px);
+	dest += ylookup[py] + px;
 
+	int x = 0;
 	while ((ch = (byte)*string++)!=0)
 	{
 		width = step = font->width[ch];
 		source = ((byte *)font)+font->location[ch];
-		while (width--)
-		{
+		while (width--) {
 			for(i=0; i<height; i++)
 			{
 				if(source[i*step])
 				{
-					// for(sy=0; sy<scaleFactor; sy++)
-					// 	for(sx=0; sx<scaleFactor; sx++)
-					// 		dest[ylookup[scaleFactor*i+sy]+sx]=fontcolor;
+					dest[ylookup[i]+x]=fontcolor;
 				}
 			}
 
 			source++;
-			px++;
-			// dest+=scaleFactor;
+			x++;
 		}
 	}
 
-	// VL_UnlockSurface(screenBuffer);
+	VL_UnlockSurface(sdlScreenBuffer);
 }
 
 
@@ -139,54 +135,6 @@ void VW_DrawColorPropString (char *string)
 	}
 bufferheight = height;
 bufferwidth = ((dest+1)-origdest)*4;
-}
-
-
-//==========================================================================
-
-
-/*
-=================
-=
-= VL_MungePic
-=
-=================
-*/
-
-void VL_MungePic (byte *source, unsigned width, unsigned height)
-{
-	unsigned	x,y,plane,size,pwidth;
-	byte		*temp, *dest, *srcline;
-
-	size = width*height;
-
-	if (width&3)
-		MS_Quit ("VL_MungePic: Not divisable by 4!");
-
-//
-// copy the pic to a temp buffer
-//
-	MM_GetPtr ((memptr*)temp,size);
-	memcpy (temp,source,size);
-
-//
-// munge it back into the original buffer
-//
-	dest = source;
-	pwidth = width/4;
-
-	for (plane=0;plane<4;plane++)
-	{
-		srcline = temp;
-		for (y=0;y<height;y++)
-		{
-			for (x=0;x<pwidth;x++)
-				*dest++ = *(srcline+x*4+plane);
-			srcline+=width;
-		}
-	}
-
-	MM_FreePtr ((memptr*)temp);
 }
 
 void VWL_MeasureString (char *string, word *width, word *height
@@ -297,25 +245,21 @@ void VWB_DrawPic (int x, int y, int chunknum)
 	width = pictable[picnum].width;
 	height = pictable[picnum].height;
 
-	// if (VW_MarkUpdateBlock (x,y,x+width-1,y+height-1))
-	// 	VL_MemToScreen (grsegs[chunknum],width,height,x,y);
+	VL_MemToScreen (grsegs[chunknum],width,height,x,y);
 }
 
 
 
 void VWB_DrawPropString	 (char *string)
 {
-	int x;
-	x=px;
 	VW_DrawPropString (string);
-	VW_MarkUpdateBlock(x,py,px-1,py+bufferheight-1);
+	// VW_MarkUpdateBlock(x,py,px-1,py+bufferheight-1);
 }
 
 
 void VWB_Bar (int x, int y, int width, int height, int color)
 {
-	if (VW_MarkUpdateBlock (x,y,x+width,y+height-1) )
-		VW_Bar (x,y,width,height,color);
+	VW_Bar (x,y,width,height,color);
 }
 
 void VWB_Plot (int x, int y, int color)
@@ -326,19 +270,21 @@ void VWB_Plot (int x, int y, int color)
 
 void VWB_Hlin (int x1, int x2, int y, int color)
 {
-	if (VW_MarkUpdateBlock (x1,y,x2,y))
-		VW_Hlin(x1,x2,y,color);
+	VW_Hlin(x1,x2,y,color);
 }
 
 void VWB_Vlin (int y1, int y2, int x, int color)
 {
-	if (VW_MarkUpdateBlock (x,y1,x,y2))
-		VW_Vlin(y1,y2,x,color);
+	VW_Vlin(y1,y2,x,color);
 }
 
 void VW_UpdateScreen (void)
 {
-	// VH_UpdateScreen ();
+	SDL_BlitSurface(sdlScreenBuffer, NULL, sdlScreen,NULL);
+
+	SDL_UpdateTexture(sdlScreenTexture, NULL, sdlScreen->pixels, sdlScreen->pitch);
+	SDL_RenderCopy(sdlRenderer, sdlScreenTexture, NULL, NULL);
+	SDL_RenderPresent(sdlRenderer);
 }
 
 
@@ -360,13 +306,12 @@ void VW_UpdateScreen (void)
 
 void LatchDrawPic (unsigned x, unsigned y, unsigned picnum)
 {
-	unsigned wide, height, source;
+	unsigned wide, height;
 
 	wide = pictable[picnum-STARTPICS].width;
 	height = pictable[picnum-STARTPICS].height;
-	source = latchpics[2+picnum-LATCHPICS_LUMP_START];
 
-	// VL_LatchToScreen (source,wide/4,height,x*8,y);
+	VL_MemToScreen(grsegs[picnum], wide, height, x, y);
 }
 
 

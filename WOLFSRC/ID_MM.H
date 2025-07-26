@@ -67,7 +67,7 @@ typedef struct
 //==========================================================================
 
 extern	mminfotype	mminfo;
-extern	memptr		bufferseg;
+extern	memptr		*bufferseg;
 extern	bool		mmerror;
 
 extern	void		(* beforesort) (void);
@@ -79,11 +79,11 @@ void MM_Startup (void);
 void MM_Shutdown (void);
 void MM_MapEMS (void);
 
-void MM_GetPtr (memptr *baseptr,unsigned long size);
-void MM_FreePtr (memptr *baseptr);
+void MM_GetPtr (memptr **baseptr,unsigned long size);
+void MM_FreePtr (memptr **baseptr);
 
 void MM_SetPurge (memptr *baseptr, int purge);
-void MM_SetLock (memptr *baseptr, bool locked);
+void MM_SetLock (memptr **baseptr, bool locked);
 void MM_SortMem (void);
 
 void MM_ShowMemory (void);

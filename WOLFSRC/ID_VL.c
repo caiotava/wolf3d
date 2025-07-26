@@ -24,38 +24,24 @@ unsigned	bordercolor;
 
 bool		fastpalette;				// if true, use outsb to set
 
-byte		palette1[256][3],palette2[256][3];
+uint32_t	screenBuffer[320*200];
+
+SDL_Color	palette1[256],palette2[256];
+SDL_Color	curpal[256];
+
+#define RGB(r, g, b) {(r)*255/63, (g)*255/63, (b)*255/63, SDL_ALPHA_OPAQUE}
+
+SDL_Color gamepal[] = {
+	#include "wolfpal.inc"
+};
 
 //===========================================================================
 
 // asm
-
-int	 VL_VideoID (void) {return 0;}
 void VL_SetCRTC (int crtc) {}
-void VL_SetScreen (int crtc, int pelpan) {}
-void VL_WaitVBL (int vbls) {}
-
-//===========================================================================
-
-
-/*
-=======================
-=
-= VL_Startup
-=
-=======================
-*/
-
-#if 0
-void	VL_Startup (void)
-{
-	if ( !MS_CheckParm ("HIDDENCARD") && VL_VideoID () != 5)
-		MS_Quit ("You need a VGA graphics card to run this!");
-
-	asm	cld;				// all string instructions assume forward
+void VL_WaitVBL (int vbls) {
+	SDL_Delay(vbls * 8);
 }
-
-#endif
 
 /*
 =======================
@@ -65,24 +51,8 @@ void	VL_Startup (void)
 =======================
 */
 
-static	char *ParmStrings[] = {"HIDDENCARD",""};
-
 void	VL_Startup (void)
 {
-	int i,videocard;
-
-	videocard = VL_VideoID ();
-	for (i = 1;i < argsCount ;i++)
-		if (US_CheckParm(argsValues[i],ParmStrings) == 0)
-		{
-			videocard = 5;
-			break;
-		}
-
-	if (videocard != 5)
-Quit ("Improper video card!  If you really have a VGA card that I am not \n"
-	  "detecting, use the -HIDDENCARD command line parameter!");
-
 }
 
 
@@ -99,25 +69,6 @@ void	VL_Shutdown (void)
 {
 	VL_SetTextMode ();
 }
-
-
-/*
-=======================
-=
-= VL_SetVGAPlaneMode
-=
-=======================
-*/
-
-void	VL_SetVGAPlaneMode (void)
-{
-// asm	mov	ax,0x13 // set the VGA mode to 13h that is 256 color but with a lower resolution.
-// asm	int	0x10
-	VL_DePlaneVGA ();
-	// VGAMAPMASK(15);
-	VL_SetLineWidth (40);
-}
-
 
 /*
 =======================
@@ -145,27 +96,15 @@ void	VL_SetTextMode (void)
 =================
 */
 
-void VL_ClearVideo (byte color)
+void VL_ClearVideo (const uint32_t color)
 {
-// asm	mov	dx,GC_INDEX
-// asm	mov	al,GC_MODE
-// asm	out	dx,al
-// asm	inc	dx
-// asm	in	al,dx
-// asm	and	al,0xfc				// write mode 0 to store directly to video
-// asm	out	dx,al
-//
-// asm	mov	dx,SC_INDEX
-// asm	mov	ax,SC_MAPMASK+15*256
-// asm	out	dx,ax				// write through all four planes
-//
-// asm	mov	ax,SCREENSEG
-// asm	mov	es,ax
-// asm	mov	al,[color]
-// asm	mov	ah,al
-// asm	mov	cx,0x8000			// 0x8000 words, clearing 8 video bytes/word
-// asm	xor	di,di
-// asm	rep	stosw
+	int r = color & 0xff;
+	int g = (color >> 8) & 0xff;
+	int b = (color >> 16) & 0xff;
+
+	SDL_SetRenderDrawColor(sdlRenderer, r, g, b, SDL_ALPHA_OPAQUE);
+	SDL_RenderClear(sdlRenderer);
+	SDL_RenderPresent(sdlRenderer);
 }
 
 
@@ -177,56 +116,6 @@ void VL_ClearVideo (byte color)
 =============================================================================
 */
 
-
-/*
-=================
-=
-= VL_DePlaneVGA
-=
-=================
-*/
-
-void VL_DePlaneVGA (void)
-{
-
-//
-// change CPU addressing to non linear mode
-//
-
-//
-// turn off chain 4 and odd/even
-//
-// 	outportb (SC_INDEX,SC_MEMMODE);
-// 	outportb (SC_INDEX+1,(inportb(SC_INDEX+1)&~8)|4);
-//
-// 	outportb (SC_INDEX,SC_MAPMASK);		// leave this set throughought
-//
-// //
-// // turn off odd/even and set write mode 0
-// //
-// 	outportb (GC_INDEX,GC_MODE);
-// 	outportb (GC_INDEX+1,inportb(GC_INDEX+1)&~0x13);
-//
-// //
-// // turn off chain
-// //
-// 	outportb (GC_INDEX,GC_MISCELLANEOUS);
-// 	outportb (GC_INDEX+1,inportb(GC_INDEX+1)&~2);
-
-//
-// clear the entire buffer space, because int 10h only did 16 k / plane
-//
-	VL_ClearVideo (0);
-
-//
-// change CRTC scanning from doubleword to byte mode, allowing >64k scans
-//
-	// outportb (CRTC_INDEX,CRTC_UNDERLINE);
-	// outportb (CRTC_INDEX+1,inportb(CRTC_INDEX+1)&~0x40);
-	//
-	// outportb (CRTC_INDEX,CRTC_MODE);
-	// outportb (CRTC_INDEX+1,inportb(CRTC_INDEX+1)|0x40);
-}
 
 //===========================================================================
 
@@ -242,24 +131,11 @@ void VL_DePlaneVGA (void)
 
 void VL_SetLineWidth (unsigned width)
 {
-	int i,offset;
-
-//
-// set wide virtual screen
-//
-	// outport (CRTC_INDEX,CRTC_OFFSET+width*256);
-
 //
 // set up lookup tables
 //
-	linewidth = width*2;
-
-	offset = 0;
-
-	for (i=0;i<MAXSCANLINES;i++)
-	{
-		ylookup[i]=offset;
-		offset += linewidth;
+	for (int i = 0; i < MAXVIEWHEIGHT; i++) {
+		ylookup[i]= i * width;
 	}
 }
 
@@ -365,70 +241,20 @@ void VL_GetColor	(int color, int *red, int *green, int *blue)
 =================
 */
 
-void VL_SetPalette (byte *palette)
+void VL_SetPalette (const SDL_Color *palette, const int size)
 {
-	int	i;
+	memcpy(curpal, palette, sizeof(SDL_Color) * 256);
 
-//	outportb (PEL_WRITE_ADR,0);
-//	for (i=0;i<768;i++)
-//		outportb(PEL_DATA,*palette++);
-
-// 	asm	mov	dx,PEL_WRITE_ADR
-// 	asm	mov	al,0
-// 	asm	out	dx,al
-// 	asm	mov	dx,PEL_DATA
-// 	asm	lds	si,[palette]
-//
-// 	asm	test	[ss:fastpalette],1
-// 	asm	jz	slowset
-// //
-// // set palette fast for cards that can take it
-// //
-// 	asm	mov	cx,768
-// 	asm	rep outsb
-// 	asm	jmp	done
-
-//
-// set palette slowly for some video cards
-// //
-// slowset:
-// 	asm	mov	cx,256
-// setloop:
-// 	asm	lodsb
-// 	asm	out	dx,al
-// 	asm	lodsb
-// 	asm	out	dx,al
-// 	asm	lodsb
-// 	asm	out	dx,al
-// 	asm	loop	setloop
-//
-// done:
-// 	asm	mov	ax,ss
-// 	asm	mov	ds,ax
-
+	SDL_SetPaletteColors(sdlScreen->format->palette, palette, 0, size);
+	SDL_SetPaletteColors(sdlScreenBuffer->format->palette, palette, 0, size);
 }
 
 
 //===========================================================================
 
-/*
-=================
-=
-= VL_GetPalette
-=
-= This does not use the port string instructions,
-= due to some incompatabilities
-=
-=================
-*/
 
-void VL_GetPalette (byte *palette)
-{
-	int	i;
-
-	// outportb (PEL_READ_ADR,0);
-	// for (i=0;i<768;i++)
-	// 	*palette++ = inportb(PEL_DATA);
+void VL_GetPalette (SDL_Color *palette) {
+	memcpy(palette, curpal, sizeof(SDL_Color) * 256);
 }
 
 
@@ -446,35 +272,42 @@ void VL_GetPalette (byte *palette)
 
 void VL_FadeOut (int start, int end, int red, int green, int blue, int steps)
 {
-	int		i,j,orig,delta;
-	byte	*origptr, *newptr;
+	int			i,j,orig,delta;
+	SDL_Color	*origptr, *newptr;
+
+	red = red * 255 / 63;
+	green = green * 255 / 63;
+	blue = blue * 255 / 63;
 
 	VL_WaitVBL(1);
-	VL_GetPalette (&palette1[0][0]);
-	memcpy (palette2,palette1,768);
+	VL_GetPalette(palette1);
+	memcpy (palette2, palette1,sizeof(SDL_Color) * 256);
 
 //
 // fade through intermediate frames
 //
 	for (i=0;i<steps;i++)
 	{
-		origptr = &palette1[start][0];
-		newptr = &palette2[start][0];
+		origptr = &palette1[start];
+		newptr = &palette2[start];
 		for (j=start;j<=end;j++)
 		{
-			orig = *origptr++;
+			orig = origptr->r;
 			delta = red-orig;
-			*newptr++ = orig + delta * i / steps;
-			orig = *origptr++;
+			newptr->r = orig + delta * i / steps;
+			orig = origptr->g;
 			delta = green-orig;
-			*newptr++ = orig + delta * i / steps;
-			orig = *origptr++;
+			newptr->g = orig + delta * i / steps;
+			orig = origptr->b;
 			delta = blue-orig;
-			*newptr++ = orig + delta * i / steps;
+			newptr->b = orig + delta * i / steps;
+			newptr->a = SDL_ALPHA_OPAQUE;
+			origptr++;
+			newptr++;
 		}
 
 		VL_WaitVBL(1);
-		VL_SetPalette (&palette2[0][0]);
+		VL_SetPalette (palette2, true);
 	}
 
 //
@@ -494,17 +327,13 @@ void VL_FadeOut (int start, int end, int red, int green, int blue, int steps)
 =================
 */
 
-void VL_FadeIn (int start, int end, byte *palette, int steps)
+void VL_FadeIn (int start, int end, SDL_Color *palette, int steps)
 {
 	int		i,j,delta;
 
 	VL_WaitVBL(1);
-	VL_GetPalette (&palette1[0][0]);
-	memcpy (&palette2[0][0],&palette1[0][0],sizeof(palette1));
-
-	start *= 3;
-	end = end*3+2;
-
+	VL_GetPalette(palette1);
+	memcpy (palette2, palette1,sizeof(SDL_Color) * 256);
 //
 // fade through intermediate frames
 //
@@ -512,47 +341,26 @@ void VL_FadeIn (int start, int end, byte *palette, int steps)
 	{
 		for (j=start;j<=end;j++)
 		{
-			delta = palette[j]-palette1[0][j];
-			palette2[0][j] = palette1[0][j] + delta * i / steps;
+			delta = palette[j].r-palette1[j].r;
+			palette2[j].r = palette1[j].r + delta * i / steps;
+			delta = palette[j].g-palette1[j].g;
+			palette2[j].g = palette1[j].g + delta * i / steps;
+			delta = palette[j].b-palette1[j].b;
+			palette2[j].b = palette1[j].b + delta * i / steps;
+			palette2[j].a = SDL_ALPHA_OPAQUE;
 		}
 
 		VL_WaitVBL(1);
-		VL_SetPalette (&palette2[0][0]);
+		VL_SetPalette (palette2, true);
 	}
 
 //
 // final color
 //
-	VL_SetPalette (palette);
+	VL_SetPalette (palette, true);
 	screenfaded = false;
 }
 
-
-
-/*
-=================
-=
-= VL_TestPaletteSet
-=
-= Sets the palette with outsb, then reads it in and compares
-= If it compares ok, fastpalette is set to true.
-=
-=================
-*/
-
-void VL_TestPaletteSet (void)
-{
-	int	i;
-
-	for (i=0;i<768;i++)
-		palette1[0][i] = i;
-
-	fastpalette = true;
-	VL_SetPalette (&palette1[0][0]);
-	VL_GetPalette (&palette2[0][0]);
-	if (memcmp (&palette1[0][0],&palette2[0][0],768))
-		fastpalette = false;
-}
 
 
 /*
@@ -616,38 +424,16 @@ void VL_Plot (int x, int y, int color)
 
 void VL_Hlin (unsigned x, unsigned y, unsigned width, unsigned color)
 {
-	unsigned		xbyte;
-	byte			*dest;
-	byte			leftmask,rightmask;
-	int				midbytes;
-
-	xbyte = x>>2;
-	leftmask = leftmasks[x&3];
-	rightmask = rightmasks[(x+width-1)&3];
-	midbytes = ((x+width+3)>>2) - xbyte - 2;
-
-	// dest = MK_FP(SCREENSEG,bufferofs+ylookup[y]+xbyte);
-
-	if (midbytes<0)
-	{
-	// all in one byte
-		// VGAMAPMASK(leftmask&rightmask);
-		*dest = color;
-		// VGAMAPMASK(15);
+	byte *dest = VL_LockSurface(sdlScreenBuffer);
+	if (dest == NULL) {
 		return;
 	}
 
-	// VGAMAPMASK(leftmask);
 	*dest++ = color;
 
-	// VGAMAPMASK(15);
-	memset (dest,color,midbytes);
-	dest+=midbytes;
+	memset (dest+ylookup[y]+x, color, width);
 
-	// VGAMAPMASK(rightmask);
-	*dest = color;
-
-	// VGAMAPMASK(15);
+	VL_UnlockSurface(sdlScreenBuffer);
 }
 
 
@@ -661,12 +447,12 @@ void VL_Hlin (unsigned x, unsigned y, unsigned width, unsigned color)
 
 void VL_Vlin (int x, int y, int height, int color)
 {
-	byte	*dest,mask;
+	byte	*dest = VL_LockSurface(sdlScreenBuffer);
+	if (dest == NULL) {
+		return;
+	}
 
-	mask = pixmasks[x&3];
-	// VGAMAPMASK(mask);
-
-	// dest = MK_FP(SCREENSEG,bufferofs+ylookup[y]+(x>>2));
+	dest += ylookup[y] + x;
 
 	while (height--)
 	{
@@ -674,7 +460,7 @@ void VL_Vlin (int x, int y, int height, int color)
 		dest += linewidth;
 	}
 
-	// VGAMAPMASK(15);
+	VL_UnlockSurface(sdlScreenBuffer);
 }
 
 
@@ -688,46 +474,19 @@ void VL_Vlin (int x, int y, int height, int color)
 
 void VL_Bar (int x, int y, int width, int height, int color)
 {
-	byte	*dest;
-	byte	leftmask,rightmask;
-	int		midbytes,linedelta;
-
-	leftmask = leftmasks[x&3];
-	rightmask = rightmasks[(x+width-1)&3];
-	midbytes = ((x+width+3)>>2) - (x>>2) - 2;
-	linedelta = linewidth-(midbytes+1);
-
-	// dest = MK_FP(SCREENSEG,bufferofs+ylookup[y]+(x>>2));
-
-	if (midbytes<0)
-	{
-	// all in one byte
-		// VGAMAPMASK(leftmask&rightmask);
-		while (height--)
-		{
-			*dest = color;
-			dest += linewidth;
-		}
-		// VGAMAPMASK(15);
+	byte *dest = VL_LockSurface(sdlScreenBuffer);
+	if (dest == NULL) {
 		return;
 	}
 
-	while (height--)
-	{
-		// VGAMAPMASK(leftmask);
-		*dest++ = color;
+	dest += ylookup[y] + x;
 
-		// VGAMAPMASK(15);
-		memset (dest,color,midbytes);
-		dest+=midbytes;
-
-		// VGAMAPMASK(rightmask);
-		*dest = color;
-
-		dest+=linedelta;
+	while (height--) {
+		memset(dest, color, width);
+		dest += sdlScreenBuffer->pitch;
 	}
 
-	// VGAMAPMASK(15);
+	VL_UnlockSurface(sdlScreenBuffer);
 }
 
 /*
@@ -737,6 +496,55 @@ void VL_Bar (int x, int y, int width, int height, int color)
 
 ============================================================================
 */
+
+/*
+===================
+=
+= VL_DePlaneVGA
+=
+= Unweave a VGA graphic to simplify drawing
+=
+===================
+*/
+
+void VL_DePlaneVGA (byte *source, int width, int height)
+{
+	int  x,y,plane;
+	byte *temp,*dest;
+
+	const word size = width * height;
+
+	if (width & 3)
+		Quit ("DePlaneVGA: width not divisible by 4!");
+
+	MM_GetPtr((memptr**)&temp, size);
+
+	//
+	// munge pic into the temp buffer
+	//
+	byte *srcline = source;
+	word pwidth = width >> 2;
+
+	for (plane = 0; plane < 4; plane++)
+	{
+		dest = temp;
+
+		for (y = 0; y < height; y++)
+		{
+			for (x = 0; x < pwidth; x++)
+				*(dest + (x << 2) + plane) = *srcline++;
+
+			dest += width;
+		}
+	}
+
+	//
+	// copy the temp buffer back into the original source
+	//
+	memcpy (source,temp,size);
+
+	MM_FreePtr ((memptr**)&temp);
+}
 
 /*
 =================
@@ -785,26 +593,21 @@ void VL_MemToLatch (byte *source, int width, int height, unsigned dest)
 =================
 */
 
-void VL_MemToScreen (byte *source, int width, int height, int x, int y)
+void VL_MemToScreen (const byte *source, const int width, const int height, const int x, const int y)
 {
-	byte    *screen,*dest,mask;
-	int		plane;
-
-	width>>=2;
-	// dest = MK_FP(SCREENSEG,bufferofs+ylookup[y]+(x>>2) );
-	mask = 1 << (x&3);
-
-	for (plane = 0; plane<4; plane++)
-	{
-		// VGAMAPMASK(mask);
-		mask <<= 1;
-		if (mask == 16)
-			mask = 1;
-
-		screen = dest;
-		for (y=0;y<height;y++,screen+=linewidth,source+=width)
-			memcpy (screen,source,width);
+	byte *dest = VL_LockSurface(sdlScreenBuffer);
+	if (dest == NULL) {
+		return;
 	}
+
+	for (int j = 0; j < height; j++) {
+		for (int i = 0; i < width; i++) {
+			const byte color = source[(j*width) + i];
+			dest[ylookup[j+y] + x+i] = color;
+		}
+	}
+
+	VL_UnlockSurface(sdlScreenBuffer);
 }
 
 //==========================================================================
@@ -1065,4 +868,21 @@ void VL_SizeTile8String (char *str, int *width, int *height)
 {
 	*height = 8;
 	*width = 8*strlen(str);
+}
+
+
+byte* VL_LockSurface(SDL_Surface *surface) {
+	if (SDL_MUSTLOCK(surface)) {
+		if (SDL_LockSurface(surface) < 0) {
+			return NULL;
+		}
+	}
+
+	return surface->pixels;
+}
+
+void VL_UnlockSurface(SDL_Surface *surface) {
+	if (SDL_MUSTLOCK(surface)) {
+		SDL_UnlockSurface(surface);
+	}
 }
